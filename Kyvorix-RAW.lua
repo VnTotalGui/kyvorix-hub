@@ -1,6 +1,6 @@
--- KYVORIX / CYBER CHROMA 7.1
+-- KYVORIX / CYBER CHROMA 7.2
 -- Standalone client UI; no gameplay automation, hooks or protection bypass.
--- Optional KYVORIX_UI_CONFIG: Language, RightInset, KyvorixLogoAsset,
+-- Optional KYVORIX_UI_CONFIG: Language, RightInset, LeftInset, BottomInset, KyvorixLogoAsset,
 -- KyvorixPortalAsset, KyvorixAssetsAuthorized, LocalArtwork.
 -- Original artwork is downloaded as PNG data only from the owner's repository.
 -- Proposed Studio/client animation timings; not a pixel-exact web reproduction.
@@ -29,16 +29,26 @@ for _,child in playerGui:GetChildren() do
 		or child:GetAttribute("KyvorixOwner")=="KYVORIX_CLIENT_7" or child:GetAttribute("KyvorixOwner")=="KYVORIX_STUDIO_6"
 		or child.Name=="Kyvorix") then child:Destroy() end
 end
+local LANGUAGE_ORDER={"en","vi","id","es","pt","fr"}
+local LANGUAGES={
+	en={country="United Kingdom",native="English",title="Choose language",code="GB"},
+	vi={country="Việt Nam",native="Tiếng Việt",title="Chọn ngôn ngữ",code="VN"},
+	id={country="Indonesia",native="Bahasa Indonesia",title="Pilih bahasa",code="ID"},
+	es={country="España",native="Español",title="Elegir idioma",code="ES"},
+	pt={country="Portugal",native="Português",title="Escolher idioma",code="PT"},
+	fr={country="France",native="Français",title="Choisir la langue",code="FR"},
+}
+
 local S={
 	language="en",mode="HUB",page="home",transitioning=false,fast=false,reduced=false,aura=true,
 	particles=true,palette=1,dead=false,epoch=0,hubCenter=nil,hubSize=nil,
 }
 local savedLanguage=playerGui:GetAttribute("KyvorixLanguage")
-if savedLanguage=="en" or savedLanguage=="vi" then S.language=savedLanguage
-elseif option("Language","en")=="vi" then S.language="vi" end
+if LANGUAGES[savedLanguage] then S.language=savedLanguage
+elseif LANGUAGES[option("Language","en")] then S.language=option("Language","en") end
 local C={
 	bg=Color3.fromRGB(4,7,20),panel=Color3.fromRGB(10,16,36),card=Color3.fromRGB(17,24,46),
-	line=Color3.fromRGB(49,66,96),text=Color3.fromRGB(234,243,255),muted=Color3.fromRGB(179,198,221),
+	line=Color3.fromRGB(49,66,96),text=Color3.fromRGB(234,243,255),muted=Color3.fromRGB(192,207,228),
 	cyan=Color3.fromRGB(0,235,245),purple=Color3.fromRGB(167,101,246),pink=Color3.fromRGB(255,60,151),
 	gold=Color3.fromRGB(246,204,72),
 }
@@ -69,7 +79,7 @@ local L={
 	particles={"Ambient sparks","Hạt sáng nền"},particlesDesc={"A small pooled field of softly moving highlights.","Các điểm sáng chuyển động nhẹ, được giới hạn số lượng."},
 	palette={"Color story","Bảng màu"},paletteDesc={"Change the accent colors across the entire hub.","Đổi màu nhấn trên toàn bộ HUB."},
 	on={"ON","BẬT"},off={"OFF","TẮT"},sunset={"Sunset","Hoàng hôn"},
-	language={"Hub language","Ngôn ngữ HUB"},languageDesc={"English by default. Switch every page to Vietnamese.","Tiếng Anh mặc định. Đổi mọi trang sang tiếng Việt."},
+	language={"Hub language","Ngôn ngữ HUB"},languageDesc={"English by default. Choose from six interface languages.","Tiếng Anh mặc định. Chọn một trong sáu ngôn ngữ giao diện."},
 	save={"Save session","Lưu trong phiên"},saveDesc={"Store interface preferences for this play session.","Lưu tùy chọn giao diện trong phiên chơi hiện tại."},
 	restore={"Restore session","Khôi phục phiên"},restoreDesc={"Restore your saved interface preferences.","Khôi phục tùy chọn giao diện đã lưu."},
 	reset={"Reset appearance","Đặt lại giao diện"},resetDesc={"Restore colors and effects without changing language.","Khôi phục màu và hiệu ứng, giữ ngôn ngữ hiện tại."},
@@ -113,7 +123,535 @@ local L={
 	shortHome={"Home","Chính"},shortProgress={"Progress","Tiến độ"},shortCombat={"Combat","Chiến đấu"},shortCollect={"Collect","Thu thập"},
 	shortEvents={"Events","Sự kiện"},shortTravel={"Travel","Di chuyển"},shortSettings={"Settings","Cài đặt"},shortSystem={"Connect","Kết nối"},
 }
+local EXTRA_TRANSLATIONS={
+	id={
+		home="Dasbor",
+		progress="Progres",
+		combat="Pertempuran",
+		collect="Koleksi",
+		events="Laut & Acara",
+		travel="Perjalanan",
+		settings="Pengaturan",
+		system="Koneksi",
+		explore="SEMESTAMU",
+		edition="CYBER CHROMA / HUB",
+		eyebrow="PERJALANAN BARUMU DIMULAI DI SINI",
+		headline1="Bermainlah sepenuh hati.",
+		headline2="Raih ketinggian baru.",
+		intro="Tujuanmu. Perjalananmu. Satu ruang KYVORIX untuk antarmuka, informasi karakter, dan langkah selanjutnya.",
+		discover="Jelajahi HUB",
+		personalize="Sesuaikan gayamu",
+		nextworld="KYVORIX / DUNIA BERIKUTNYA",
+		world="Dunia berikutnya menantimu.",
+		chapter="BAB BERIKUTNYA",
+		ready="Siap saat kamu siap.",
+		character="KARAKTERMU",
+		level="LEVEL",
+		beli="BELI",
+		fragments="FRAGMENTS",
+		health="KESEHATAN",
+		unavailable="Tidak tersedia",
+		live="HANYA BACA / LANGSUNG",
+		workspace="Ruangmu. Ritmemu.",
+		workspaceDesc="Sesuaikan warna dan gerakan. Pantau hal penting di KYVORIX STATUS.",
+		toStatus="Buka status ringkas",
+		themeTag="CHROME / CYAN / MAGENTA",
+		pending="BELUM TERHUBUNG",
+		pendingDesc="Halaman ini belum memiliki callback gameplay yang diizinkan. Membukanya tidak menjalankan tindakan.",
+		progressDesc="Data karakter diperbarui di dasbor. Pelacakan pesanan shop menunggu API yang diizinkan.",
+		settingsDesc="Lebih sesuai gayamu. Setiap perubahan langsung memperbarui status.",
+		reduced="Kurangi gerakan",
+		reducedDesc="Transisi langsung tanpa gerakan latar.",
+		fast="Mode cepat",
+		fastDesc="Dekorasi lebih sedikit, antarmuka lebih ringan, respons langsung.",
+		aura="Aura & orbit",
+		auraDesc="Cahaya cyan dan magenta berlapis di sekitar gambar.",
+		particles="Percikan latar",
+		particlesDesc="Sekumpulan kecil titik cahaya yang bergerak lembut.",
+		palette="Palet warna",
+		paletteDesc="Ubah warna aksen di seluruh HUB.",
+		on="AKTIF",
+		off="NONAKTIF",
+		sunset="Senja",
+		language="Bahasa HUB",
+		languageDesc="Bahasa Inggris secara bawaan. Pilih bahasa antarmuka di sini.",
+		save="Simpan sesi",
+		saveDesc="Simpan preferensi antarmuka untuk sesi bermain ini.",
+		restore="Pulihkan sesi",
+		restoreDesc="Pulihkan preferensi antarmuka yang tersimpan.",
+		reset="Atur ulang tampilan",
+		resetDesc="Pulihkan warna dan efek tanpa mengubah bahasa.",
+		size="Ukuran jendela",
+		sizeDesc="Ubah ukuran dari sudut kanan bawah atau tombol ini.",
+		smaller="Lebih kecil",
+		larger="Lebih besar",
+		saved="Preferensi sesi tersimpan.",
+		restored="Preferensi sesi dipulihkan.",
+		badProfile="Tidak ada sesi tersimpan yang valid.",
+		error="Antarmuka tidak dapat menyelesaikan tindakan itu.",
+		connections="KONEKSI & GAMBAR ASLI",
+		apiWait="Login shop, pesanan, dukungan, dan pembayaran menunggu API yang diizinkan.",
+		imageLoading="Memuat gambar asli…",
+		imageMissing="Gambar tidak tersedia",
+		imageHelp="Periksa sumber gambar dan akses asset.",
+		loaded="Dimuat",
+		loading="Memuat",
+		failed="Tidak tersedia",
+		localImage="PNG pemilik / asset lokal",
+		robloxImage="Asset gambar Roblox",
+		logo="Logo",
+		portal="Portal",
+		print="Cetak diagnostik",
+		printed="Diagnostik antarmuka dicetak ke Output.",
+		footer="KYVORIX / Antarmuka saja",
+		statusTitle="KYVORIX STATUS",
+		active="AKTIF",
+		none="Tidak ada fitur aktif",
+		features="FITUR",
+		interface="ANTARMUKA",
+		open="Buka HUB",
+		statusHint="Pengaturan langsung · ketuk untuk membuka",
+		minimize="Perkecil ke tombol pembuka",
+		compact="Beralih ke STATUS",
+		close="Tutup HUB",
+		destroy="Hapus antarmuka",
+		destroyDesc="Putuskan event dan hapus HUB ini.",
+		assetsNote="Gambar asli shop. Logo memiliki cadangan 48px tersemat; diagnostik membedakannya dari PNG penuh.",
+		logoLoading="Logo\nmemuat",
+		logoMissing="Logo\ntidak tersedia",
+		rasterImage="Gambar tersemat 48px",
+		bootTitle="Mulai HUB-mu",
+		bootSubtitle="Pemeriksaan singkat dan jelas sebelum memulai.",
+		bootChecking="Memeriksa sesimu…",
+		bootReady="Siap membuka KYVORIX.",
+		bootReadyWarn="Siap. Beberapa data opsional tidak tersedia.",
+		bootEnvironment="Client & antarmuka",
+		bootCharacter="Karakter",
+		bootLevel="Level karakter",
+		bootHealth="Kesehatan",
+		bootWallet="Beli & fragments",
+		bootArtwork="Gambar asli",
+		bootKey="Key akses",
+		checking="MEMERIKSA",
+		passed="SIAP",
+		warning="OPSIONAL",
+		skipped="DILEWATI",
+		bootKeySkip="Belum diaktifkan pemilik",
+		bootDataMissing="Tidak disediakan game ini",
+		bootCharMissing="Karakter belum muncul",
+		bootLoad="Muat HUB",
+		bootRetry="Coba lagi gambar",
+		bootDetails="Diagnostik",
+		bootBusy="Pemeriksaan masih berjalan.",
+		bootDetailsPrinted="Detail startup dicetak ke Output.",
+		bootNative="Logo tersemat aktif; PNG penuh tidak tersedia",
+		bootAssetWarn="Beberapa gambar tidak tersedia",
+		shortHome="Beranda",
+		shortProgress="Progres",
+		shortCombat="Tempur",
+		shortCollect="Koleksi",
+		shortEvents="Acara",
+		shortTravel="Jelajah",
+		shortSettings="Setelan",
+		shortSystem="Koneksi",
+	},
+	es={
+		home="Panel",
+		progress="Progreso",
+		combat="Combate",
+		collect="Colección",
+		events="Mar y eventos",
+		travel="Viajes",
+		settings="Ajustes",
+		system="Conexiones",
+		explore="TU UNIVERSO",
+		edition="CYBER CHROMA / HUB",
+		eyebrow="TU PRÓXIMO VIAJE EMPIEZA AQUÍ",
+		headline1="Juega al máximo.",
+		headline2="Alcanza nuevas metas.",
+		intro="Tus metas. Tu camino. Un espacio KYVORIX para tu interfaz, los datos de tu personaje y tu próximo paso.",
+		discover="Explora tu HUB",
+		personalize="Personalízalo",
+		nextworld="KYVORIX / NUEVO MUNDO",
+		world="Tu próximo mundo te espera.",
+		chapter="EL SIGUIENTE CAPÍTULO",
+		ready="Listo cuando tú lo estés.",
+		character="TU PERSONAJE",
+		level="NIVEL",
+		beli="BELI",
+		fragments="FRAGMENTOS",
+		health="SALUD",
+		unavailable="No disponible",
+		live="SOLO LECTURA / EN VIVO",
+		workspace="Tu espacio. Tu ritmo.",
+		workspaceDesc="Ajusta colores y movimiento. Consulta lo importante en KYVORIX STATUS.",
+		toStatus="Ver estado compacto",
+		themeTag="CROMO / CIAN / MAGENTA",
+		pending="SIN CONEXIÓN",
+		pendingDesc="Esta página no tiene un callback de juego autorizado. Abrirla no inicia ninguna acción.",
+		progressDesc="Los datos del personaje se actualizan en el panel. El seguimiento de pedidos espera una API autorizada.",
+		settingsDesc="Dale tu estilo. Cada cambio actualiza el estado al instante.",
+		reduced="Reducir movimiento",
+		reducedDesc="Transiciones instantáneas sin movimiento ambiental.",
+		fast="Modo rápido",
+		fastDesc="Menos decoración, interfaz más ligera y respuesta inmediata.",
+		aura="Aura y órbitas",
+		auraDesc="Luz cian y magenta en capas alrededor de la imagen.",
+		particles="Destellos ambientales",
+		particlesDesc="Un pequeño grupo limitado de luces que se mueven suavemente.",
+		palette="Paleta de colores",
+		paletteDesc="Cambia los colores de acento de todo el HUB.",
+		on="SÍ",
+		off="NO",
+		sunset="Atardecer",
+		language="Idioma del HUB",
+		languageDesc="Inglés por defecto. Elige aquí el idioma de la interfaz.",
+		save="Guardar sesión",
+		saveDesc="Guarda las preferencias de interfaz durante esta sesión.",
+		restore="Restaurar sesión",
+		restoreDesc="Restaura las preferencias de interfaz guardadas.",
+		reset="Restablecer apariencia",
+		resetDesc="Restaura colores y efectos sin cambiar el idioma.",
+		size="Tamaño de ventana",
+		sizeDesc="Arrastra la esquina inferior derecha o usa estos controles.",
+		smaller="Más pequeño",
+		larger="Más grande",
+		saved="Preferencias de sesión guardadas.",
+		restored="Preferencias de sesión restauradas.",
+		badProfile="No hay una sesión guardada válida.",
+		error="La interfaz no pudo completar esa acción.",
+		connections="CONEXIONES E IMÁGENES ORIGINALES",
+		apiWait="El acceso a la tienda, los pedidos, el soporte y los pagos esperan una API autorizada.",
+		imageLoading="Cargando imágenes originales…",
+		imageMissing="Imagen no disponible",
+		imageHelp="Comprueba el origen y el acceso de la imagen.",
+		loaded="Cargado",
+		loading="Cargando",
+		failed="No disponible",
+		localImage="PNG del propietario / recurso local",
+		robloxImage="Recurso de imagen Roblox",
+		logo="Logo",
+		portal="Portal",
+		print="Mostrar diagnóstico",
+		printed="Diagnóstico de interfaz enviado a Output.",
+		footer="KYVORIX / Solo interfaz",
+		statusTitle="KYVORIX STATUS",
+		active="ACTIVAS",
+		none="Sin funciones activas",
+		features="FUNCIONES",
+		interface="INTERFAZ",
+		open="Abrir HUB",
+		statusHint="Ajustes en vivo · toca para abrir",
+		minimize="Minimizar al lanzador",
+		compact="Cambiar a STATUS",
+		close="Cerrar HUB",
+		destroy="Eliminar interfaz",
+		destroyDesc="Desconecta los eventos y elimina este HUB.",
+		assetsNote="Imágenes originales de la tienda. El logo tiene una versión integrada de 48px; el diagnóstico la distingue del PNG completo.",
+		logoLoading="Cargando\nlogo",
+		logoMissing="Logo\nno disponible",
+		rasterImage="Imagen integrada de 48px",
+		bootTitle="Inicia tu HUB",
+		bootSubtitle="Una comprobación rápida y transparente antes de empezar.",
+		bootChecking="Comprobando tu sesión…",
+		bootReady="Listo para abrir KYVORIX.",
+		bootReadyWarn="Listo. Algunos datos opcionales no están disponibles.",
+		bootEnvironment="Cliente e interfaz",
+		bootCharacter="Personaje",
+		bootLevel="Nivel del personaje",
+		bootHealth="Salud",
+		bootWallet="Beli y fragmentos",
+		bootArtwork="Imágenes originales",
+		bootKey="Clave de acceso",
+		checking="COMPROBANDO",
+		passed="LISTO",
+		warning="OPCIONAL",
+		skipped="OMITIDO",
+		bootKeySkip="No activada por el propietario",
+		bootDataMissing="Este juego no expone estos datos",
+		bootCharMissing="El personaje aún no ha aparecido",
+		bootLoad="Cargar HUB",
+		bootRetry="Reintentar imágenes",
+		bootDetails="Diagnóstico",
+		bootBusy="Las comprobaciones siguen en curso.",
+		bootDetailsPrinted="Detalles de inicio enviados a Output.",
+		bootNative="Logo integrado activo; PNG completo no disponible",
+		bootAssetWarn="Algunas imágenes no están disponibles",
+		shortHome="Inicio",
+		shortProgress="Progreso",
+		shortCombat="Combate",
+		shortCollect="Colección",
+		shortEvents="Eventos",
+		shortTravel="Viajes",
+		shortSettings="Ajustes",
+		shortSystem="Conectar",
+	},
+	pt={
+		home="Painel",
+		progress="Progresso",
+		combat="Combate",
+		collect="Coleção",
+		events="Mar e eventos",
+		travel="Viagens",
+		settings="Configurações",
+		system="Conexões",
+		explore="SEU UNIVERSO",
+		edition="CYBER CHROMA / HUB",
+		eyebrow="SUA PRÓXIMA JORNADA COMEÇA AQUI",
+		headline1="Jogue o seu melhor.",
+		headline2="Alcance novos horizontes.",
+		intro="Seus objetivos. Sua jornada. Um espaço KYVORIX para sua interface, os dados do personagem e o próximo passo.",
+		discover="Explore seu HUB",
+		personalize="Personalize",
+		nextworld="KYVORIX / PRÓXIMO MUNDO",
+		world="Seu próximo mundo espera.",
+		chapter="O PRÓXIMO CAPÍTULO",
+		ready="Pronto quando você estiver.",
+		character="SEU PERSONAGEM",
+		level="NÍVEL",
+		beli="BELI",
+		fragments="FRAGMENTOS",
+		health="VIDA",
+		unavailable="Indisponível",
+		live="SOMENTE LEITURA / AO VIVO",
+		workspace="Seu espaço. Seu ritmo.",
+		workspaceDesc="Ajuste cores e movimentos. Acompanhe o que importa no KYVORIX STATUS.",
+		toStatus="Ver status compacto",
+		themeTag="CROMADO / CIANO / MAGENTA",
+		pending="NÃO CONECTADO",
+		pendingDesc="Esta página não tem callback de jogo autorizado. Abri-la não inicia nenhuma ação.",
+		progressDesc="Os dados do personagem são atualizados no painel. O rastreamento de pedidos aguarda uma API autorizada.",
+		settingsDesc="Deixe com a sua cara. Cada mudança atualiza o status na hora.",
+		reduced="Reduzir movimentos",
+		reducedDesc="Transições instantâneas e sem movimento de fundo.",
+		fast="Modo rápido",
+		fastDesc="Menos decoração, interface mais leve e resposta imediata.",
+		aura="Aura e órbitas",
+		auraDesc="Luzes ciano e magenta em camadas ao redor da imagem.",
+		particles="Partículas de fundo",
+		particlesDesc="Um pequeno conjunto limitado de luzes com movimentos suaves.",
+		palette="Paleta de cores",
+		paletteDesc="Mude as cores de destaque de todo o HUB.",
+		on="ATIVADO",
+		off="DESATIVADO",
+		sunset="Pôr do sol",
+		language="Idioma do HUB",
+		languageDesc="Inglês por padrão. Escolha aqui o idioma da interface.",
+		save="Salvar sessão",
+		saveDesc="Guarde as preferências da interface nesta sessão de jogo.",
+		restore="Restaurar sessão",
+		restoreDesc="Restaure as preferências da interface salvas.",
+		reset="Redefinir aparência",
+		resetDesc="Restaure cores e efeitos sem mudar o idioma.",
+		size="Tamanho da janela",
+		sizeDesc="Arraste o canto inferior direito ou use estes controles.",
+		smaller="Menor",
+		larger="Maior",
+		saved="Preferências da sessão salvas.",
+		restored="Preferências da sessão restauradas.",
+		badProfile="Nenhuma sessão salva válida.",
+		error="A interface não conseguiu concluir essa ação.",
+		connections="CONEXÕES E IMAGENS ORIGINAIS",
+		apiWait="Login da loja, pedidos, suporte e pagamentos aguardam uma API autorizada.",
+		imageLoading="Carregando imagens originais…",
+		imageMissing="Imagem indisponível",
+		imageHelp="Verifique a origem e o acesso da imagem.",
+		loaded="Carregado",
+		loading="Carregando",
+		failed="Indisponível",
+		localImage="PNG do proprietário / recurso local",
+		robloxImage="Recurso de imagem Roblox",
+		logo="Logo",
+		portal="Portal",
+		print="Exibir diagnóstico",
+		printed="Diagnóstico da interface enviado ao Output.",
+		footer="KYVORIX / Somente interface",
+		statusTitle="KYVORIX STATUS",
+		active="ATIVAS",
+		none="Nenhuma função ativa",
+		features="FUNÇÕES",
+		interface="INTERFACE",
+		open="Abrir HUB",
+		statusHint="Ajustes ao vivo · toque para abrir",
+		minimize="Minimizar para o iniciador",
+		compact="Mudar para STATUS",
+		close="Fechar HUB",
+		destroy="Remover interface",
+		destroyDesc="Desconecte os eventos e remova este HUB.",
+		assetsNote="Imagens originais da loja. O logo tem uma versão integrada de 48px; o diagnóstico a distingue do PNG completo.",
+		logoLoading="Carregando\nlogo",
+		logoMissing="Logo\nindisponível",
+		rasterImage="Imagem integrada de 48px",
+		bootTitle="Inicie seu HUB",
+		bootSubtitle="Uma verificação rápida e transparente antes de começar.",
+		bootChecking="Verificando sua sessão…",
+		bootReady="Pronto para abrir o KYVORIX.",
+		bootReadyWarn="Pronto. Alguns dados opcionais estão indisponíveis.",
+		bootEnvironment="Cliente e interface",
+		bootCharacter="Personagem",
+		bootLevel="Nível do personagem",
+		bootHealth="Vida",
+		bootWallet="Beli e fragmentos",
+		bootArtwork="Imagens originais",
+		bootKey="Chave de acesso",
+		checking="VERIFICANDO",
+		passed="PRONTO",
+		warning="OPCIONAL",
+		skipped="IGNORADO",
+		bootKeySkip="Não ativada pelo proprietário",
+		bootDataMissing="Este jogo não fornece estes dados",
+		bootCharMissing="O personagem ainda não apareceu",
+		bootLoad="Carregar HUB",
+		bootRetry="Tentar imagens novamente",
+		bootDetails="Diagnóstico",
+		bootBusy="As verificações ainda estão em andamento.",
+		bootDetailsPrinted="Detalhes da inicialização enviados ao Output.",
+		bootNative="Logo integrado ativo; PNG completo indisponível",
+		bootAssetWarn="Algumas imagens estão indisponíveis",
+		shortHome="Início",
+		shortProgress="Progresso",
+		shortCombat="Combate",
+		shortCollect="Coleta",
+		shortEvents="Eventos",
+		shortTravel="Viagens",
+		shortSettings="Ajustes",
+		shortSystem="Conectar",
+	},
+	fr={
+		home="Tableau de bord",
+		progress="Progression",
+		combat="Combat",
+		collect="Collection",
+		events="Mer et événements",
+		travel="Voyages",
+		settings="Paramètres",
+		system="Connexions",
+		explore="VOTRE UNIVERS",
+		edition="CYBER CHROMA / HUB",
+		eyebrow="VOTRE PROCHAINE AVENTURE COMMENCE ICI",
+		headline1="Donnez le meilleur.",
+		headline2="Atteignez de nouveaux sommets.",
+		intro="Vos objectifs. Votre parcours. Un espace KYVORIX pour votre interface, les données du personnage et la suite.",
+		discover="Explorez votre HUB",
+		personalize="Personnaliser",
+		nextworld="KYVORIX / PROCHAIN MONDE",
+		world="Votre prochain monde vous attend.",
+		chapter="LE PROCHAIN CHAPITRE",
+		ready="Prêt à vous suivre.",
+		character="VOTRE PERSONNAGE",
+		level="NIVEAU",
+		beli="BELI",
+		fragments="FRAGMENTS",
+		health="SANTÉ",
+		unavailable="Indisponible",
+		live="LECTURE SEULE / EN DIRECT",
+		workspace="Votre espace. Votre rythme.",
+		workspaceDesc="Ajustez les couleurs et les mouvements. Suivez l’essentiel dans KYVORIX STATUS.",
+		toStatus="Afficher le statut compact",
+		themeTag="CHROME / CYAN / MAGENTA",
+		pending="NON CONNECTÉ",
+		pendingDesc="Cette page ne dispose d’aucun callback de jeu autorisé. Son ouverture ne lance aucune action.",
+		progressDesc="Les données du personnage s’actualisent dans le tableau de bord. Le suivi des commandes attend une API autorisée.",
+		settingsDesc="À votre image. Chaque changement actualise le statut immédiatement.",
+		reduced="Réduire les mouvements",
+		reducedDesc="Transitions instantanées et aucun mouvement d’ambiance.",
+		fast="Mode rapide",
+		fastDesc="Moins de décoration, une interface plus légère et une réponse immédiate.",
+		aura="Aura et orbites",
+		auraDesc="Lumières cyan et magenta superposées autour de l’image.",
+		particles="Étincelles d’ambiance",
+		particlesDesc="Un petit ensemble limité de points lumineux aux mouvements doux.",
+		palette="Palette de couleurs",
+		paletteDesc="Modifiez les couleurs d’accent de tout le HUB.",
+		on="ACTIVÉ",
+		off="DÉSACTIVÉ",
+		sunset="Coucher de soleil",
+		language="Langue du HUB",
+		languageDesc="Anglais par défaut. Choisissez ici la langue de l’interface.",
+		save="Enregistrer la session",
+		saveDesc="Enregistrez les préférences de l’interface pour cette session.",
+		restore="Restaurer la session",
+		restoreDesc="Restaurez vos préférences d’interface enregistrées.",
+		reset="Réinitialiser l’apparence",
+		resetDesc="Restaurez les couleurs et les effets sans changer de langue.",
+		size="Taille de la fenêtre",
+		sizeDesc="Redimensionnez par le coin inférieur droit ou avec ces commandes.",
+		smaller="Réduire",
+		larger="Agrandir",
+		saved="Préférences de session enregistrées.",
+		restored="Préférences de session restaurées.",
+		badProfile="Aucune session enregistrée valide.",
+		error="L’interface n’a pas pu terminer cette action.",
+		connections="CONNEXIONS ET IMAGES ORIGINALES",
+		apiWait="La connexion à la boutique, les commandes, l’assistance et les paiements attendent une API autorisée.",
+		imageLoading="Chargement des images originales…",
+		imageMissing="Image indisponible",
+		imageHelp="Vérifiez la source de l’image et l’accès à la ressource.",
+		loaded="Chargé",
+		loading="Chargement",
+		failed="Indisponible",
+		localImage="PNG du propriétaire / ressource locale",
+		robloxImage="Ressource image Roblox",
+		logo="Logo",
+		portal="Portail",
+		print="Afficher le diagnostic",
+		printed="Diagnostic de l’interface envoyé dans Output.",
+		footer="KYVORIX / Interface uniquement",
+		statusTitle="KYVORIX STATUS",
+		active="ACTIVES",
+		none="Aucune fonction active",
+		features="FONCTIONS",
+		interface="INTERFACE",
+		open="Ouvrir le HUB",
+		statusHint="Réglages en direct · toucher pour ouvrir",
+		minimize="Réduire au lanceur",
+		compact="Passer à STATUS",
+		close="Fermer le HUB",
+		destroy="Supprimer l’interface",
+		destroyDesc="Déconnectez les événements et supprimez ce HUB.",
+		assetsNote="Images originales de la boutique. Le logo possède une version intégrée de 48px ; le diagnostic la distingue du PNG complet.",
+		logoLoading="Chargement\ndu logo",
+		logoMissing="Logo\nindisponible",
+		rasterImage="Image intégrée de 48px",
+		bootTitle="Lancez votre HUB",
+		bootSubtitle="Une vérification rapide et transparente avant de commencer.",
+		bootChecking="Vérification de votre session…",
+		bootReady="Prêt à ouvrir KYVORIX.",
+		bootReadyWarn="Prêt. Certaines données facultatives sont indisponibles.",
+		bootEnvironment="Client et interface",
+		bootCharacter="Personnage",
+		bootLevel="Niveau du personnage",
+		bootHealth="Santé",
+		bootWallet="Beli et fragments",
+		bootArtwork="Images originales",
+		bootKey="Clé d’accès",
+		checking="VÉRIFICATION",
+		passed="PRÊT",
+		warning="FACULTATIF",
+		skipped="IGNORÉ",
+		bootKeySkip="Non activée par le propriétaire",
+		bootDataMissing="Ce jeu ne fournit pas ces données",
+		bootCharMissing="Le personnage n’est pas encore apparu",
+		bootLoad="Charger le HUB",
+		bootRetry="Réessayer les images",
+		bootDetails="Diagnostic",
+		bootBusy="Les vérifications sont toujours en cours.",
+		bootDetailsPrinted="Détails du démarrage envoyés dans Output.",
+		bootNative="Logo intégré actif ; PNG complet indisponible",
+		bootAssetWarn="Certaines images sont indisponibles",
+		shortHome="Accueil",
+		shortProgress="Progrès",
+		shortCombat="Combat",
+		shortCollect="Collecte",
+		shortEvents="Événements",
+		shortTravel="Voyages",
+		shortSettings="Réglages",
+		shortSystem="Connexion",
+	},
+}
+
 local function tr(key)
+	if EXTRA_TRANSLATIONS[S.language] and EXTRA_TRANSLATIONS[S.language][key] then return EXTRA_TRANSLATIONS[S.language][key] end
 	local pair=L[key]
 	return pair and pair[S.language=="vi" and 2 or 1] or key
 end
@@ -142,10 +680,10 @@ local function stop(object,finish)
 	UI.tweens[object]=nil; entry.connection:Disconnect(); entry.tween:Cancel()
 	if finish then for key,value in pairs(entry.goals) do object[key]=value end end
 end
-local function animate(object,goals,duration)
+local function animate(object,goals,duration,easing,direction)
 	stop(object,false)
 	if S.fast or S.reduced or duration==0 then for key,value in pairs(goals) do object[key]=value end; return end
-	local tween=TweenService:Create(object,TweenInfo.new(duration,Enum.EasingStyle.Quint,Enum.EasingDirection.Out),goals)
+	local tween=TweenService:Create(object,TweenInfo.new(duration,easing or Enum.EasingStyle.Quint,direction or Enum.EasingDirection.Out),goals)
 	local entry={tween=tween,goals=goals}
 	entry.connection=tween.Completed:Connect(function()
 		if UI.tweens[object]==entry then UI.tweens[object]=nil end
@@ -177,8 +715,8 @@ local function gradient(object,colors,rotation)
 end
 local function label(parent,key,size,color,bold,literal)
 	local l=make("TextLabel",parent,{
-		Text=literal and key or tr(key),TextColor3=color or C.text,TextSize=size or 13,
-		Font=bold and Enum.Font.GothamBold or Enum.Font.Gotham,TextWrapped=true,
+		Text=literal and key or tr(key),TextColor3=color or C.text,TextSize=math.max(11,size or 13),
+		Font=bold and Enum.Font.GothamBold or Enum.Font.GothamMedium,TextWrapped=true,
 		TextXAlignment=Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Center,
 		BackgroundTransparency=1,BorderSizePixel=0,
 	})
@@ -239,19 +777,38 @@ local function button(parent,key,primary,callback,name,literal)
 		animate(f,{BackgroundTransparency=on and .08 or (b:GetAttribute("RestTransparency") or 0)},.15)
 	end
 	connect(b.MouseEnter,function() hover(true) end)
-	connect(b.MouseLeave,function() hover(false); animate(press,{Scale=1},.12) end)
+	connect(b.MouseLeave,function() hover(false); animate(press,{Scale=1},.18) end)
 	connect(b.SelectionGained,function() hover(true) end); connect(b.SelectionLost,function() hover(false) end)
 	connect(b.InputBegan,function(input)
-		if input.UserInputType==Enum.UserInputType.MouseButton1 or input.UserInputType==Enum.UserInputType.Touch then animate(press,{Scale=.95},.08) end
+		if input.UserInputType==Enum.UserInputType.MouseButton1 or input.UserInputType==Enum.UserInputType.Touch then animate(press,{Scale=.97},.10) end
 	end)
-	connect(b.InputEnded,function() animate(press,{Scale=1},.12) end)
+	connect(b.InputEnded,function() animate(press,{Scale=1},.18) end)
 	connect(b.Activated,function()
 		if S.dead then return end
-		animate(press,{Scale=1},.12)
+		animate(press,{Scale=1},.18)
 		local ok,err=pcall(callback)
 		if not ok then warn("KYVORIX UI: "..tostring(err)); notify("error") end
 	end)
 	return b,l,f
+end
+local function windowControl(parent,kind,callback,name)
+	local b,caption,face=button(parent,"",false,callback,name,true)
+	caption.Visible=false; b:SetAttribute("RestTransparency",.45); face.BackgroundTransparency=.45
+	local icon=frame(face,nil,1); icon.AnchorPoint=Vector2.new(.5,.5); icon.Position=UDim2.fromScale(.5,.5); icon.Size=UDim2.fromOffset(14,14)
+	local pieces={}
+	local function line(x,y,w,h,rotation)
+		local p=frame(icon,C.text); rect(p,x,y,w,h); p.Rotation=rotation or 0; round(p,1); table.insert(pieces,p)
+	end
+	if kind=="minimize" then line(1,6,12,2)
+	elseif kind=="status" then
+		line(1,1,12,1); line(1,12,12,1); line(1,1,1,12); line(12,1,1,12)
+	else line(0,6,14,1,45); line(0,6,14,1,-45) end
+	local function tint(on)
+		for _,p in pieces do animate(p,{BackgroundColor3=on and (kind=="close" and Color3.fromRGB(255,116,139) or C.cyan) or C.text},.18) end
+	end
+	connect(b.MouseEnter,function() tint(true) end); connect(b.MouseLeave,function() tint(false) end)
+	connect(b.SelectionGained,function() tint(true) end); connect(b.SelectionLost,function() tint(false) end)
+	return b
 end
 local setMode,refreshStatus,refreshEffects,setLanguage,layoutHub
 local function card(parent,height,order)
@@ -260,7 +817,7 @@ local function card(parent,height,order)
 end
 -- Original owner PNG data and an explicit lower-detail UI fallback.
 -- Compiled from original owner PNG; 48px quantized fallback, one shared GUI pool.
-local NATIVE_LOGO={size=48,palette={16777215,16580349,15331575,13560572,13426419,13554395,12570602,12109020,11515073,10078194,10203866,6670333,6337017,9938371,10265003,8561113,5613043,9476006,8754876,8818336,7836357,7768238,7897493,7110313,6780314,6844028,5739495,5606363,5669067,4556505,2393579,5534376,5466771,4026055,2387924,5596039,5988979,5528428,4546456,4676479,4608883,5001309,4018297,4344153,3950692,3301799,3299743,3297668,2318525,1922474,1724320,2771343,1394849,3426157,2508662,3162731,2964577,2441075,3817292,3619396,2963793,2503508,3027776,2632502,2305086,1851020,998799,734094,1848157,1127269,1715286,1845824,1190746,600678,599398,335205,861004,531275,1516609,794688,596544,2106675,1647415,1580331,1186864,727861,333125,333108,792106,398381,266545,134192,988191,659227,331296,592658,330264,133404,66854,132628,132108,66061,263172,197379,131588,262914,197378,197122,131586,66050,524800,197377,197121,131585,131584,32,12,6,65794,3,131329,65793,65537,1,262400,65792,65536,0},data=[[000001017eff0100060179ff0700010178ff0800010179ff090002017eff0b00030179ff0e00010178ff0f0002017eff1100010179ff1200010167ff1300020166ff150001016cff160001017dff1700020161ff190001017eff1a00010176ff1b00010167ff1c00010166ff1d0001016cff1e00030179ff2100010178ff2200020179ff240001017eff2500020179ff2700020178ff2900060179ff2f0001017eff0001010179ff0101040178ff050101016cff060101016bff070101016cff0801020178ff0a01020171ff0c0101026bff0d0102016cff0f01010167ff1001010166ff110101017dff120104017fff1601010175ff1701010120ff1801010126ff1901010175ff1a01010177ff1b0103017fff1e0101017eff1f01010166ff2001010167ff210101016cff2201010178ff230101017eff240101017aff2501010278ff260101016cff2701010171ff2801010278ff290102016cff2b01010176ff2c0101016cff2d01010171ff2e01010378ff2f01010279ff000201037eff0102010279ff0202020178ff0402020279ff060202016cff0802010171ff0902010170ff0a0201016aff0b02010170ff0d0201016cff0e02010179ff0f0202017fff1102010175ff1202010151ff1302010129ff1402010219ff1502010125ff1602010227ff170201010aff1802010112ff1902010135ff1a0201012bff1b02010124ff1c02010125ff1d02010151ff1e02010165ff1f0202017fff210201017dff2202010176ff2302020179ff2602010171ff270201016cff290201016cff2a02010171ff2b0203016cff0203020171ff0603010178ff0703030170ff0a03010171ff0b03010167ff0c03010170ff0d0301017eff0e0301017fff0f0301013fff1003010113ff1103020105ff130301010eff150301013bff1703010105ff1803010213ff190301012cff1a0301013fff1b03010119ff1c0302010eff1e03010108ff1f03010113ff200301013eff2103010175ff220301017fff2303010171ff2403010168ff2503020178ff2703010171ff280301016bff2903010171ff2a03020178ff2c0302016bff2f0301017eff0104010178ff020401016bff030401016cff0404010171ff0504010178ff0604020171ff0804020178ff0a0401016cff0b0401017eff0c0401017fff0d04010159ff0e04010118ff0f04010105ff1004010108ff1104010124ff1204010147ff1304010157ff1404010150ff1504010149ff1604010115ff1704010102ff1904010127ff1a04010156ff1b04010161ff1c04010162ff1d04010154ff1e04010129ff1f0401010eff2004010107ff2104010118ff2204010157ff2304010175ff240401017fff250401016cff2604010179ff2704010178ff2804010170ff290401016aff2a04010171ff2b04010178ff2c04010171ff2d0401016bff2e04010171ff2f04010479ff0005010179ff010501016cff0205020171ff040501016cff050501016bff0605010171ff0705010179ff080501016cff0905010170ff0a0501017fff0b05010159ff0c05010133ff0d05010146ff0e05010125ff0f05010152ff1005010144ff1105010136ff120501012fff1305010126ff140501014cff150501014dff1605010116ff1705010112ff1805010127ff190501013aff1a05020161ff1c0501011fff1d05010133ff1e05020149ff2005010155ff2105010129ff2205010152ff2305010136ff2405010157ff250501017fff2605010170ff270501016cff2805020171ff2a0501016cff2b05040171ff0006010178ff010602016cff0306010171ff0406010278ff0506010171ff0606010179ff0706010168ff080601017fff0906010177ff0a06010155ff0b0602011bff0d06010160ff0e06010148ff0f0601011cff1006010136ff1106010158ff120601013fff1306010208ff1406010158ff150601015eff1606010105ff1706010109ff180601012dff1906010117ff1a06010161ff1b06010158ff1c06010108ff1d06010153ff1e06010160ff1f06010145ff200601011cff2106010148ff2206010164ff2306010126ff240601011cff2506010155ff2606010177ff270601017fff2806010167ff2906010179ff2a06010171ff2b0601016aff2c06010171ff2d06010379ff2e06010371ff0007010679ff010701016cff020701026aff0307010270ff0507010179ff0607010167ff070701017fff0807010161ff0907010116ff0a07010125ff0b07010152ff0c07010149ff0d0701014fff0e0701015eff0f0701010dff100701010eff110701015eff120701013aff1407010105ff1507010207ff1607010103ff170701010cff1807010122ff190701010fff1a07010212ff1b07010105ff1c0701010dff1d07010151ff1e0701015fff1f0701010eff200701010dff210701015eff220701014fff2307010149ff2407010154ff250701013aff2607010118ff270701015eff280701017fff2907010167ff2a07010178ff2b07010171ff2c07010178ff0108010171ff0408010171ff0508010167ff060801017fff0708010158ff0808010108ff0908010102ff0a0801013fff0b08020156ff0d0801015dff0e08010152ff0f0801012aff1008010116ff110801013bff1208010124ff1308010212ff1408010102ff160801010dff1708010134ff1808010133ff1908010120ff1b08010102ff1c08010215ff1d0801012bff1e0801013eff1f08010116ff2008010138ff210801017fff2208010164ff2308010145ff2408010142ff2508010152ff2608010105ff2708010107ff2808010152ff290801017fff2a08010167ff2b08010179ff2c08010171ff2f08010278ff0109030171ff0409010166ff050901017fff0609010151ff0709010104ff0809010105ff090901013eff0a09010149ff0b0901015aff0c0901015cff0d09010135ff0e0901012fff0f0901015aff1009010115ff1109010125ff120901012cff1409010104ff150901010aff1609010106ff170901010dff180901011fff190901011cff1a0901010fff1b09010103ff1d0901013dff1e09010125ff1f09010114ff2009010163ff2109020158ff230901015dff240901014cff2509010142ff2609010147ff2709010108ff280901010dff2909010152ff2a0901017fff2b09010167ff2c09020171ff2e09010170ff010a01016cff020a010171ff030a01016aff040a01017dff050a01015dff060a010108ff070a010105ff080a010153ff090a010157ff0a0a010155ff0b0a01013dff0c0a01011fff0d0a010126ff0e0a010144ff0f0a010173ff100a010128ff110a010118ff120a010137ff130a010116ff140a010112ff150a010120ff160a01012cff170a01013cff180a010146ff190a010138ff1a0a010120ff1b0a01010dff1c0a010119ff1d0a010146ff1e0a010117ff1f0a01012cff200a01017fff210a010165ff220a010177ff230a01015eff240a010154ff250a010159ff260a010157ff270a01015cff280a010111ff290a01010dff2a0a010158ff2b0a01017fff2c0a01016cff2d0a010178ff2e0a010171ff2f0a010479ff010b020171ff030b01016bff040b010168ff050b010216ff060b010111ff070b01012cff080b01014bff090b01017cff0a0b010152ff0b0b010139ff0c0b01013dff0d0b02012fff0f0b010133ff100b01012eff110b010115ff120b010144ff130b010148ff140b01014cff150b010138ff160b02013cff180b01013eff190b010163ff1a0b010177ff1b0b010163ff1c0b01013fff1d0b01013aff1e0b010112ff1f0b01012bff200b01013bff210b01013cff220b010128ff230b01012bff240b010137ff250b010146ff260b01016eff270b010142ff280b01012aff290b010108ff2a0b010118ff2b0b010164ff2c0b010178ff2d0b010179ff2e0b01016cff010c010178ff020c010167ff030c01017fff040c01013eff060c01013aff070c010130ff080c010149ff090c010164ff0a0c010146ff0b0c010154ff0c0c010127ff0d0c010114ff0e0c01010fff0f0c010104ff100c010102ff110c010104ff120c020103ff140c010102ff150c010108ff160c010120ff170c010117ff180c01012aff190c010159ff1a0c01015fff1b0c01012aff1c0c01011cff1d0c01012dff1e0c01011dff1f0c01010cff200c01010bff210c010103ff220c010108ff230c010116ff240c01014eff250c01012fff260c010146ff270c01014cff280c01011eff290c010128ff2a0c010119ff2b0c01013eff2c0c01017bff2d0c01016cff2e0c010378ff000d01017dff010d01026cff020d010178ff030d010175ff040d01012cff050d010140ff060d01011fff070d010110ff080d010173ff090d010144ff0a0d010152ff0b0d010168ff0c0d010159ff0d0d010141ff0e0d010130ff0f0d01012dff100d010107ff110d010100ff120d010101ff130d010100ff140d010111ff150d010154ff160d010123ff170d01013dff180d01015cff190d01016dff1a0d01017bff1b0d010145ff1c0d010122ff1d0d020130ff1f0d01011bff200d010106ff210d010116ff220d01012cff230d010138ff240d01017fff250d01015cff260d01011fff270d01015aff280d02011dff2a0d01013eff2b0d01013cff2c0d010174ff2d0d01017eff000e010279ff020e01017fff030e010155ff040e010151ff050e010150ff060e01011eff070e01012fff080e010138ff090e01011fff0a0e01014eff0b0e01015dff0c0e010162ff0d0e01011dff0e0e020130ff100e010143ff110e010107ff120e020101ff140e010119ff150e01012cff160e01012fff170e01014fff180e01017eff190e010174ff1a0e010139ff1b0e02011eff1d0e01010bff1e0e010104ff1f0e010102ff200e01010eff210e02013fff230e01015dff240e010177ff250e01014fff260e010144ff270e020136ff290e01011eff2a0e010146ff2b0e010153ff2c0e010158ff2d0e01017fff2f0e01017dff010f01017eff020f010163ff030f010127ff040f01015cff050f010142ff060f010122ff070f010152ff080f010110ff090f010136ff0a0f010168ff0b0f010160ff0c0f01015bff0d0f01010cff0e0f010243ff0f0f01014aff100f010130ff110f010134ff120f010106ff130f010400ff140f010216ff150f010111ff160f010135ff170f010163ff180f010173ff190f01012eff1a0f020110ff1c0f01011dff1d0f010104ff1e0f010100ff1f0f010104ff200f010224ff210f01013fff220f01017dff230f02015fff250f01013dff260f010135ff270f010120ff280f01012cff290f010122ff2a0f010142ff2b0f01015fff2c0f010138ff2d0f010163ff2e0f01037fff2f0f010179ff001001016dff011001027fff0210010150ff0310010126ff041001013aff0510010157ff0610010155ff071001012fff0810010141ff0910010157ff0a10010158ff0b1001015eff0c1001014dff0d10010139ff0f10010144ff1010020222ff121001010cff1510010108ff161001012cff1710010162ff1810010121ff1910010110ff1a1001010bff1b10010103ff1c10020102ff1e10010108ff1f10010105ff2110010164ff2210010165ff2310010174ff241001015dff251001015cff2610020147ff281001015cff2910010152ff2a1001014fff2b1001013bff2c10010124ff2d10010152ff2f10010176ff0011010178ff0211010236ff0311010123ff041101012cff051101013cff061101013bff071102012fff0911010240ff0a1101015eff0b11010127ff0c1101011bff0d11010133ff0e11010152ff0f11010126ff1211010209ff1411010117ff151101011fff1611010139ff171101011aff1811020110ff1a11010103ff1b11010105ff1c11010116ff1d1101013eff1e11010119ff1f1101010dff2011010154ff211101015bff221101012eff231101012dff2411010161ff2511010166ff2611010147ff2711010137ff2811010152ff2911010153ff2a11010146ff2b1101012fff2c11010115ff2d11010223ff2f11010169ff001201017eff0112010161ff0312010125ff041201013cff051201013aff061201015cff071201015fff081201013aff0a1201015fff0b12010147ff0c12010133ff0d12010121ff0e12010145ff0f1201011cff1012010232ff1112010243ff141201021fff1512010133ff161201010fff171201010bff181201010aff1912010108ff1a12010119ff1b1201012cff1c12010152ff1d1201013fff1e1201012cff1f12010136ff2012010162ff2112010173ff2212010133ff231201010cff2412010162ff251201017fff2612010137ff271201013dff2812010138ff2912020120ff2b1201012eff2c12010117ff2e12010177ff2f12010171ff001301027fff0113010145ff0213010141ff0313010153ff0413010158ff0513010154ff0613010252ff0713010154ff0813010153ff0913010151ff0a1301012bff0b13010152ff0c13010159ff0d1301014dff0e13010157ff0f1301040fff121301010cff1313010201ff151301010fff1613010109ff1713010114ff181301011cff1913010139ff1a13010159ff1b1301013dff1c13010154ff1d1301015dff1e1301014dff1f13010234ff201301011dff2113020121ff2313010143ff2413010135ff2513010126ff261301014dff2713010159ff281301013dff2913010127ff2a1301012cff2b13010140ff2c13010147ff2d1301012eff2e13010151ff2f1301047fff011401012dff0214010122ff031401014dff041402014fff071401015eff0814010159ff091401014eff0a14010153ff0b14010140ff0c14010156ff0d14010162ff0e14010155ff1014010141ff111401014bff121401010fff141401010dff1514010105ff1614010107ff171402010cff191401011fff1a14010138ff1b14010156ff1c14010163ff1d14010174ff1e14010162ff201401010cff211401010bff2214010141ff2314010114ff2414010109ff251401010dff2614010120ff2714020121ff291401010fff2a1401012aff2b1401015eff2c1401015fff2d14010135ff2e1401015fff0015010277ff0115010131ff0215010110ff031501011aff0415010121ff051501012eff0615010149ff0715010133ff081501012dff091501011bff0a15010248ff0b1501015dff0c15010148ff0d15010156ff0e1501014eff1015010134ff1115010143ff121501010aff1315010102ff1415010140ff151501014aff1615010124ff171501010eff1815010105ff1915020103ff1b1501010aff1c15010136ff1d15010149ff1e1501011dff1f1501010cff2015010121ff211501014aff2215010112ff2315010118ff241501021bff251501011fff261501013cff2715010120ff2815010126ff2915020133ff2b15010150ff2c15010146ff2d15010147ff2e15010164ff0116010141ff0216010130ff0316020121ff0516010109ff061601010cff071601021dff0816010221ff091601011dff0b16010175ff0c1601014cff0d1601014aff0e16010152ff1016010130ff1116010122ff121601020fff1316010105ff141601023dff151601014bff1616010134ff171601014bff1816010150ff1916010125ff1a16010106ff1b16010102ff1c16010103ff1d1601010bff1e16010122ff1f16010141ff2016010262ff211601012cff2216010124ff2316010145ff251601011dff2616010146ff2716010154ff281601014eff2916010118ff2a1601010fff2b16010145ff2c16010140ff2d1601013cff2e16010159ff001701027fff0117010132ff0217010131ff0317010146ff0417010156ff0517010132ff061701010bff091701011bff0a1701014cff0b1701017fff0c17010136ff0d17010144ff0e17010151ff0f1701011aff101702011eff1317010108ff1517010152ff161701014aff171701011eff1817010130ff1917010143ff1a17010124ff1b17010104ff1c17010202ff1d17010104ff1e17010120ff1f17010161ff2117010147ff2217010154ff231701015eff2417010145ff2517010141ff261701014fff2717010139ff2817010121ff291701011bff2a17010114ff2b17010126ff2c1701024cff2d1702014dff2f17010179ff011801014bff021801011bff031801012fff041801015eff0518010156ff061802011aff081801011dff091801011aff0a18010150ff0b18010161ff0c1801021bff0d18010141ff0e18010148ff0f1802011eff1118010110ff121801011aff131801010dff141801012aff1518010128ff161801017fff1718010148ff1818020122ff1a18010134ff1b18010112ff1d18010101ff1e18010103ff1f18010117ff2018010158ff2118010174ff2218010175ff2318010177ff2418010175ff251801017bff2618010174ff2718010133ff2818020121ff2a18010117ff2b18010120ff2d1801011aff2e18010149ff2f1801017fff0019010163ff0119010114ff021901010cff0319010143ff0419010158ff0519010165ff0619010141ff071901010cff0819010149ff091901012eff0a1901015bff0b1901014dff0d1901010cff0e1901011bff0f19020110ff111901010bff1219010104ff131901010aff1419010127ff1519010118ff161901015dff171901017bff181901015bff191902011eff1b19010134ff1c1901011bff1d19010106ff1e19010101ff1f19010102ff201901011cff2119010157ff2219010161ff2319010155ff2419010150ff2519010159ff261901015fff2719010163ff281902014cff2a1901013cff2b1901012aff2c19010136ff2d19020109ff2f1901014fff001a010127ff011a010103ff021a010122ff031a010245ff041a01015aff051a010174ff061a010162ff071a010141ff081a01015bff091a010156ff0a1a01012dff0b1a01011fff0c1a01014bff0d1a01012eff0e1a010109ff0f1a01010bff101a010103ff111a010104ff121a010111ff131a010118ff141a010140ff151a010113ff161a010158ff171a02015fff191a010149ff1a1a03011eff1d1a010130ff1e1a010115ff1f1a020103ff211a01011bff221a01014aff231a010145ff241a010114ff251a01012dff261a010149ff271a010161ff281a01017fff291a010163ff2a1a010158ff2b1a01015cff2c1a01011cff2d1a010209ff2e1a01010aff2f1a010135ff001b010138ff011b010106ff021b01010cff041b010144ff051b010127ff061b02012fff081b01011fff091b01011aff0a1b010117ff0b1b010140ff0c1b01014eff0d1b010112ff0e1b020109ff101b010107ff111b010115ff121b010118ff131b010113ff141b010124ff151b01010dff161b010129ff171b010111ff181b010113ff191b010151ff1a1b01011dff1b1b01010bff1c1b010109ff1d1b01011aff1e1b01012dff1f1b01011cff201b020109ff221b01010cff231b010120ff241b010129ff251b010115ff261b01011bff271b01011fff281b010136ff291b010139ff2a1b010128ff2b1b010140ff2c1b01011fff2e1b01012eff2f1b01015eff001c010175ff011c010145ff021c01010fff031c01011bff041c010133ff051c01012aff061c010115ff071c010106ff081c01010dff091c010151ff0a1c01013aff0b1c010125ff0c1c01012bff0d1c010147ff0e1c010144ff0f1c01012fff101c010157ff111c010160ff121c01013fff131c01012bff141c010119ff151c01012bff161c010153ff171c010118ff181c010123ff191c01015cff1a1c010138ff1b1c010120ff1c1c010127ff1d1c01013cff1e1c01015eff1f1c010156ff201c010139ff211c010137ff221c01013eff231c030129ff261c010151ff271c010116ff281c010107ff291c010112ff2a1c01012cff2b1c010136ff2c1c010110ff2d1c01011dff2e1c010150ff2f1c01017fff001d010171ff011d010146ff021d010131ff031d010141ff041d010156ff051d01015eff061d010124ff071d010200ff081d010211ff091d01015cff0a1d010100ff0b1d010107ff0c1d01013eff0d1d010213ff0e1d010116ff0f1d01017bff101d010116ff111d010113ff121d010116ff131d010129ff141d01017fff151d010125ff161d010116ff171d01013eff181d010116ff191d01010eff1a1d010116ff1b1d010160ff1c1d010125ff1d1d010113ff1e1d01010eff1f1d010111ff201d01013fff211d01013aff221d010111ff231d01013aff241d01010eff251d010100ff261d01013bff271d01010eff281d010101ff291d01012cff2a1d01015dff2b1d010156ff2c1d010134ff2d1d01012dff2e1d010138ff2f1d010168ff001e010179ff011e010177ff021e010146ff031e01011cff041e010126ff051e010173ff061e010129ff091e020105ff0b1e010152ff0c1e01017fff0e1e010100ff0f1e01012bff101e010100ff111e010124ff121e020105ff141e010164ff151e010102ff161e020108ff181e010102ff191e010116ff1a1e010101ff1b1e01010eff1c1e010111ff1d1e010100ff1e1e010119ff1f1e020105ff211e010129ff221e010100ff231e01023bff241e01015dff251e020104ff271e010102ff281e01010eff291e010160ff2a1e01017bff2b1e010127ff2c1e010117ff2d1e010138ff2e1e010164ff2f1e01017dff001f01016cff011f01017fff021f010147ff031f010137ff041f010124ff051f01013eff061f01022bff071f010105ff081f010107ff091f010104ff0a1f010125ff0b1f01017fff0c1f010166ff0d1f01015fff0e1f010107ff0f1f010104ff101f010108ff111f01017fff121f010124ff131f010104ff141f01012bff151f010104ff161f01013aff171f010105ff181f010113ff191f01017fff1a1f020108ff1c1f010119ff1d1f010105ff1e1f01013cff1f1f01010dff201f010111ff211f01013bff221f010104ff241f01027fff251f010125ff261f010104ff271f010107ff281f01013dff291f01017fff2a1f01013cff2b1f010125ff2c1f01012aff2d1f010147ff2e1f01017fff2f1f010168ff0020010179ff0120010176ff0220010154ff0320010119ff0420010129ff052001017aff0720010123ff0820020119ff0a20010111ff0b20010140ff0c2001017eff0d2001027fff0e2001012bff0f20010113ff102001013eff112001017dff1220010153ff1320010118ff1420010111ff1520010118ff162001015eff172001010eff1820010127ff1920010173ff1a20010115ff1b20010118ff1c2001012cff1d20010115ff1e2002010fff202001013dff212001013fff2220010115ff232001013eff2520010119ff2620010118ff2720010119ff2820010135ff2920010164ff2a2001015aff2b20010139ff2c20010120ff2d20010158ff2e20010179ff2f20010176ff002101017eff0121010179ff022101017fff032101015cff0421020138ff0621010128ff072101010aff082101012bff092101013eff0a21010107ff0b2101010dff0c2101015eff0e21010125ff0f21010107ff102101013dff1121010168ff1221010164ff1321010115ff1421010106ff1521010126ff1621010163ff1721010112ff182102010fff1a21010109ff1b21010127ff1c21010120ff1d2101010aff1e21010138ff1f21010106ff2021010139ff212101014eff2221010206ff2321010140ff242101013cff2521010106ff2621010115ff2721010112ff282101010fff2921010156ff2a21010134ff2b21010133ff2c2101015cff2d2101017fff2e21010178ff2f2101027dff002201017dff0122020179ff032201017bff0422010155ff052201014fff0622010118ff0722010107ff0822010135ff0922010173ff0a22010115ff0b22010106ff0c22010114ff0d2201015dff0e22010118ff0f22010109ff1022010144ff112201017bff1222010175ff132201022aff142201011cff1522010145ff1622010162ff1722010143ff182201011aff1922010114ff1a22010126ff1b22010162ff1c22010126ff1d2201011cff1e22010157ff1f22010114ff202201010fff212201012aff2322010118ff242201010dff2522010107ff2622010140ff2722010118ff2822010106ff2922010131ff2a2201011eff2b2201014cff2c2201017fff2d2201016cff2e22010179ff002301017eff0123010178ff0223010167ff0323010179ff0423010148ff0523010136ff0623010112ff0723010109ff0823010126ff0923010150ff0a2301012cff0b23010123ff0c23010127ff0d23010154ff0e23010147ff0f23010146ff1023010147ff1123010138ff1223010227ff142301012eff1523010139ff1623010143ff172301010bff1823010110ff192301014bff1a23010146ff1b23010127ff1c23020133ff1e23010139ff1f23010156ff202301014eff2123020147ff232301012cff2423010127ff2523010123ff262301017fff272301012cff2823010109ff292301010fff2a23010121ff2b23010156ff2c23020176ff2e2301016cff2f23010779ff0024010179ff0124010171ff022401026cff032401017dff042401015eff052402011cff0724010144ff082401014eff0924010127ff0a2401012fff0b24010145ff0c2401014cff0d2401014eff0e2401013dff0f24010135ff102401012fff112401012aff132401011fff1424010109ff1524010104ff162401011cff172401011aff182401011dff192401011cff1a24010104ff1b2401010aff1c2401011fff1d2401012fff1e24020136ff2024010139ff2124010145ff2224010155ff2324020148ff2524010139ff2624010136ff272402014eff2924010121ff2a2401011cff2b24010158ff2c2401017eff2d24010168ff2e2401026bff002501027dff0125010178ff032501017fff0425010158ff052501014dff062501014aff0725010143ff0825020149ff0a2501014dff0b2501014cff0c25010145ff0d25010160ff0e2501025eff0f25010264ff1025010177ff1125010163ff122501017bff1325010175ff1425010159ff1525010127ff1625010112ff1725010126ff1825010133ff1925010118ff1a2501012fff1b25010155ff1c25010174ff1d2501017fff1e25010161ff1f2501015eff2025010157ff2125010161ff2225010163ff2325010150ff242501014fff2525010156ff262501014cff272501014fff2825010149ff292501014bff2a25010156ff2b25010154ff2c2501017fff2d2501016cff0126020178ff0326010179ff042602017fff0626010163ff0726010131ff082601011eff092601012dff0a26010117ff0b2601013eff0c26010159ff0d2601015aff1026010160ff112601014cff122601024fff1326010159ff1426010165ff1526010158ff1626010138ff1726010111ff1826010123ff192601014fff1a2601014eff1b26010174ff1c26010160ff1d2601014fff1e26010148ff1f26010145ff2026010148ff2126010146ff222601012eff232601015eff2426010153ff2526010119ff262601012cff2726010130ff282601012dff2926010163ff2a2602017fff2c2601017dff2d26010179ff2e2601016cff002701017eff0127010171ff022701016fff0327010170ff042701016cff0527020168ff0727010174ff082701012dff092701010bff0a2701010cff0b2701010dff0c2701013bff0d27010153ff0e27020146ff1027010161ff1127010164ff132701024cff1427010164ff1527010176ff162701015bff1727010123ff182701013cff1927010157ff1a27010139ff1b27010155ff1c27010159ff1d2701014cff1e27010145ff1f27010133ff202702011cff2227010135ff232701013fff2427010108ff252701010fff2627010134ff2727010145ff2827010165ff292701017fff2a27010168ff2b27010176ff2c27020179ff2e27010178ff002801017dff0128010278ff0228010170ff032801016aff0428010170ff0528010178ff062801016dff0728010166ff0828010173ff0928010133ff0a28010122ff0b28010121ff0c28010147ff0d2802013fff0f2801013cff1028010139ff112801014eff1228010159ff1428010163ff1528010159ff1628010157ff1728010144ff1828010146ff1928010162ff1a28020161ff1c28010157ff1d28010139ff1e2801012dff1f2801011cff2028010123ff212801013eff222801013fff2328010151ff2428010123ff252801014dff2628010162ff272801017fff2828020176ff2a28010178ff2b28030171ff2e2801016cff002901017eff022902016aff0429020170ff0629010171ff072901016dff0829010166ff0929010174ff0a29010173ff0b2901014dff0c29010145ff0d29010161ff0e2901013fff0f29010116ff1029010125ff112901013cff1229010158ff1329010150ff1429010139ff1529010145ff1629010141ff1729010121ff182901012dff1929020139ff1b29010136ff1c29010133ff1d29010136ff1e29010138ff1f2901022bff2029010116ff212901012bff2229010161ff2329010144ff242901015aff2529010168ff262901017eff272901016dff2829010178ff2929010171ff2a2901016aff2b2901016bff2c29010171ff2d29020170ff002a010179ff012a01016cff022a01016aff032a010170ff042a010171ff052a01026aff062a01016bff072a010176ff082a020168ff0a2a010172ff0b2a01017cff0c2a010158ff0d2a010148ff0e2a010123ff0f2a01010dff102a010116ff112a010129ff122a01013aff132a010151ff142a01013dff152a010133ff162a010132ff172a020121ff192a010131ff1a2a01012dff1b2a010135ff1c2a010140ff1d2a01013fff1e2a01013bff202a010113ff212a010112ff222a010148ff232a010159ff242a01016aff252a01017dff262a010176ff272a010178ff282a010171ff292a010170ff2a2a020171ff2c2a010278ff2d2a020371ff2f2a010278ff002b010178ff012b02016aff032b020170ff062b01016cff072b010179ff082b01017eff092b010179ff0a2b020176ff0c2b01017fff0d2b010176ff0e2b010158ff0f2b01012aff102b01012cff112b020151ff132b010153ff142b010141ff152b010110ff162b04010bff1a2b010110ff1b2b010141ff1c2b02015cff1e2b010153ff1f2b01013dff202b010137ff212b010152ff222b010164ff232b01017fff242b010179ff252b040178ff292b030171ff002c010279ff012c010171ff022c010170ff032c01016aff042c010171ff052c010170ff062c010171ff072c010178ff082c010179ff092c020171ff0b2c010179ff0c2c01016dff0d2c01017dff0e2c02017fff102c010161ff112c010150ff122c010145ff132c01014cff142c010149ff152c010134ff162c010130ff172c01011dff182c01011eff192c010130ff1a2c010132ff1b2c010145ff1c2c010150ff1d2c010148ff1e2c010155ff1f2c010161ff202c02017fff222c01017eff232c010168ff242c030178ff272c020179ff292c020171ff2b2c020178ff2f2c010279ff012d020170ff032d020171ff052d01016aff062d01016bff072d01016cff082d030171ff0b2d020178ff0d2d01016cff0e2d010167ff0f2d010166ff102d01017eff112d01017fff122d010163ff132d01015eff142d01015aff152d010150ff162d01014dff172d020143ff192d01014dff1a2d010157ff1b2d01015eff1c2d010161ff1d2d010164ff1e2d01017fff1f2d01017eff202d01016aff212d010167ff222d01016cff232d030171ff262d010170ff272d010171ff282d010179ff292d010178ff2a2d010171ff2b2d010178ff2c2d010171ff2d2d010170ff2e2d01016bff002e01027fff012e010171ff022e01016bff032e010170ff042e01016aff052e010166ff062e010167ff072e02016aff092e02016bff0b2e02016cff0d2e03016bff102e010167ff112e01016aff122e010172ff132e02017fff152e01017bff162e010177ff172e020165ff192e010177ff1a2e01017bff1b2e02017fff1d2e01017eff1e2e01016cff1f2e010167ff202e03016bff232e010171ff242e010178ff252e01016cff262e010167ff272e01016aff282e03016bff2b2e01016cff2c2e02016aff2e2e01016cff2f2e01017eff012f01017eff022f010179ff032f010178ff042f03016cff072f010178ff082f010179ff092f030178ff0c2f040179ff102f020178ff122f030179ff152f020176ff172f010179ff182f01017aff192f030176ff1c2f050179ff212f01017dff222f030179ff252f010178ff262f01016cff272f010171ff282f010179ff292f010178ff2a2f04016cff2e2f010179ff2f2f01017fff]]}
+local NATIVE_LOGO={size=48,palette={16777215,15596287,16513988,15067633,14018298,14080223,11857919,11854333,12310775,13094362,11127797,12959698,12041418,11383498,9878249,10136524,11050907,9936558,9541540,8953543,8949667,6610429,783103,7127037,3916277,7647477,5876719,3518971,8363217,6987492,5282542,2858483,7704522,8159458,5737433,7571886,8094321,4491751,4359099,2525421,164297,7437201,7173258,6387624,6778240,6185846,4486860,3894994,5206434,5137555,4088993,4217261,4151952,4479357,4084090,3754616,5658978,5460824,4673376,4212825,3948361,2585042,2648775,946922,2777786,811217,2250427,1070803,218596,87466,2774671,1463692,1919404,2247313,346309,738198,2902136,2899554,1525630,933496,144340,470934,669063,1521783,537720,863348,2701916,1718625,1650527,667746,402781,3488069,3290171,2831689,2764347,2500404,2109515,2042432,1190732,1647935,665166,203658,203866,269394,662853,136260,1515576,990777,333879,398131,67894,1908262,923173,725281,658455,265246,2854,67358,795,197641,131330,255,136,27,5,262144,65536,0},data=[[170002013f22160101013f11170102011abb190101013f11110201015011120201011e55130201011988140201010eaa1502010123cc160201012edd170201010fff1802010113ff1902010133dd1a02010131cc1b0201011caa1c02010119881d0201011e551e02010144220e03010179110f0301011a551003010107aa1103010104ee1203010109ff130301010dff1403010124ff150301013cff1603010135ff1703010109ff1803010214ff190301013aff1a0301015fff1b0301012cff1c03010111ff1d0301010fff1e0301010aee1f03010107bb2003010119552103010150110d0401014a660e04010120dd0f04010104ff100401010cff1104010138ff1204010161ff130401016cff1404010169ff1504010154ff1604010123ff1704010103ff1904010131ff1a04010166ff1b04020174ff1d0401016aff1e04010138ff1f04010110ff2004010109ff2104010120dd2204010145770b0501013f440c0501013dcc0d05010157ff0e05010138ff0f05010161ff1005010157ff1105020147ff1305010130ff140501015aff1505010167ff160501012aff1705010113ff1805010135ff190501013bff1a05010274ff1b0501016dff1c05010130ff1d05010147ff1e0501014bff1f05010259ff200501016bff2105010139ff2205010161ff2305010140cc240501013f440906010179110a0601014b880b06020125ff0d06010175ff0e06010159ff0f06010122ff100601014eff110601016bff120601015fff130601010cff1406010170ff1506010174ff160601010bff1706010117ff180601013eff1906010123ff1b06010170ff1c0601010cff1d0601015fff1e06010174ff2006010126ff2106010155ff2206010177ff2306010132ff240601011eff250601014b99260601017911080701014a33090701011ccc0a07010138ff0b0701016aff0c07010152ff0d07010164ff0e07010174ff0f0701010fff1007010111ff110701016dff120701015bff130701010dff1407010109ff150701020cff1607010107ff170701011aff180701013dff1907010119ff1a07010111ff1b07010105ff1c0701010dff1d0701015eff1e07010173ff1f07010110ff200701010fff2107010174ff2207010164ff2307010152ff240701016aff250701013cff260701011ccc270701014433070801013d44080801010aee0908010103ff0a0801015fff0b08010166ff0c08010167ff0d08010171ff0e08010163ff0f08010146ff1008010114ff110801013cff120801012dff1308010114ff1408010103ff160801010fff1708010148ff1808010149ff1908010131ff1a08010113ff1b08010103ff1c08010114ff1d08010139ff1e0801015cff1f08010114ff200801014cff210801017cff2208010177ff2308010159ff240801014bff2508010163ff2608010109ff2708010108ee280801012544060901011e440709010108ff0809010109ff090901015bff0a09010152ff0b09010169ff0c09010170ff0d0901014cff0e09010140ff0f09010169ff1009010120ff1109010138ff120901013bff1309010111ff1409010108ff150901010eff1609010109ff170901010fff1809010132ff1909010126ff1a0901011cff1b09010104ff1c09010120ff1d09010156ff1e09010138ff1f0901011cff2009010174ff2109020168ff230901016cff2409010159ff2509010145ff2609010161ff270901010cff280901010fff290901012544050a01012722060a01010eee070a010105ff080a01016fff090a01016cff0a0a010164ff0b0a010156ff0c0a010126ff0d0a010140ff0e0a01014eff0f0a010175ff100a010136ff110a010129ff120a01014dff130a010129ff140a010113ff150a010130ff160a01013aff170a010156ff180a010162ff190a010156ff1a0a010130ff1b0a010113ff1c0a01012aff1d0a010158ff1e0a01012bff1f0a010137ff200a01017fff210a010174ff220a01017bff230a010169ff240a010162ff250a01016cff260a010169ff270a010172ff280a010112ff290a01010fee2a0a01011e22050b01011ccc060b010110ff070b010137ff080b010165ff090b01017dff0a0b010162ff0b0b010149ff0c0b010157ff0d0b010146ff0e0b010140ff0f0b020149ff110b010123ff120b010156ff130b010158ff140b010162ff150b030156ff180b01015dff190b010175ff1a0b020177ff1c0b01015eff1d0b01013cff1e0b010114ff1f0b01013aff200b01015bff210b01015dff220b010136ff230b01013aff240b01014cff250b010157ff260b01017dff270b010154ff280b010136ff290b01010cff2a0b01011ccc2b0b01011811040c01012e77050c010129ff060c01013cff070c010141ff080c010154ff090c010173ff0a0c010153ff0b0c010164ff0c0c010130ff0d0c02011cff0f0c010104ff100c010101ff110c010108ff120c020104ff140c010101ff150c01010dff160c01022aff170c010123ff180c010136ff190c01016dff1a0c010173ff1b0c010135ff1c0c010125ff1d0c010140ff1e0c010125ff1f0c01011aff200c010115ff210c010106ff220c01010dff230c010129ff240c010162ff250c010142ff260c010157ff270c01015aff280c01013fff290c010135ff2a0c01012cff2b0c01012688030d01014422040d010134ee050d01015eff060d010126ff070d010118ff080d010174ff090d010153ff0a0d010162ff0b0d010177ff0c0d01016cff0d0d010149ff0e0d01013eff0f0d010142ff100d010109ff110d030100ff140d010112ff150d010170ff170d010156ff180d010170ff190d010177ff1a0d01017cff1b0d010159ff1c0d01013fff1d0d010141ff1e0d010143ff1f0d010125ff200d010107ff210d010129ff220d02013bff240d01017fff250d01016cff260d01012eff270d010169ff280d02011fff2a0d01015bff2b0d010137ee2c0d01014411030e01014899040e01015fff050e010168ff060e01011bff070e010146ff080e01014cff090e010126ff0a0e010157ff0b0e010171ff0c0e01016eff0d0e010122ff0e0e010143ff0f0e010141ff100e010151ff110e01010aff120e020100ff140e01012cff150e01013aff160e010134ff170e010164ff180e010177ff190e01017bff1a0e010153ff1b0e020127ff1d0e010118ff1e0e010107ff1f0e010101ff200e010111ff210e01015fff220e01015eff230e010171ff240e01017cff250e010164ff260e01014fff270e010149ff280e010147ff290e01011bff2a0e010157ff2b0e01016fff2c0e01014e99020f01013f22030f010132ee040f01016fff050f010147ff060f010128ff070f010163ff080f010117ff090f010148ff0a0f010177ff0b0f010173ff0c0f010169ff0d0f010117ff0e0f01014aff0f0f010159ff100f010141ff110f01014aff120f010108ff130f010600ff140f01012aff150f010112ff160f010137ff170f010175ff180f010174ff190f010142ff1a0f01011bff1b0f01011fff1c0f010127ff1d0f010108ff1e0f010100ff1f0f010103ff200f01022dff210f01015eff220f01017eff230f020172ff250f010160ff260f010137ff270f010130ff280f01014dff290f01013dff2a0f010147ff2b0f010172ff2c0f010136ee2d0f01013f11021001014a770310010231ff041001013bff051001016cff061001016bff0710010146ff0810010145ff0910010166ff0a10010168ff0b1001016dff0c1001015aff0d10010149ff0e10010151ff0f10010153ff101002023fff121001011aff1410010229ff151001010dff1610010136ff171001016eff181001012fff191001011fff1a10010118ff1b10010106ff1c10010101ff1d10010103ff1e1001010dff1f10010109ff2110010177ff2210010176ff231001017bff2410010171ff251001016fff2610020160ff281001016fff2910010163ff2a10010162ff2b1001015bff2c10010131ff2d1001013e77021101013ebb041101013aff051101015dff061101013cff0711020134ff091101025dff0a11010169ff0b11010131ff0c1101011eff0d11010146ff0e11010163ff0f11010134ff1211010217ff151101012bff1611010153ff171101011dff181101011fff191101011bff1a11010106ff1b11010109ff1c11010114ff1d1101015bff1e1101012cff1f11010111ff201101016bff2111010169ff2211010142ff2311010140ff241101026eff2511010177ff2611010160ff271101014cff2811010163ff291101016aff2a11010160ff2b11010134ff2c11010114ff2d1101011dbb011201011f110212010147ee031201012dff041201013cff051201013bff061201016fff0712010172ff081201013bff0a12010172ff0b12010162ff0c12010146ff0d1201013dff0e1201014eff0f12010126ff1012010148ff1112010251ff1412010130ff1512010149ff1612010119ff1712010117ff1812010119ff191201010dff1a1201012cff1b1201013aff1c12010161ff1d1201015eff1e1201013aff1f1201014cff201202016eff2212010148ff2312010119ff251201017fff261201014cff2712010156ff281201014dff2912020130ff2b12010132ff2c12010123ff2d12010122ee2e1201017911011301011b660213010148ff031301016aff041301016bff051301016aff0613010161ff071301016aff081301016fff091301015fff0a1301013bff0b13010161ff0c1301016cff0d1301015aff0e13010169ff0f1301011cff1013010142ff1213010219ff141301012eff1513010119ff161301010eff1713010120ff181301012bff1913010153ff1a1301016dff1b13010157ff1c1301016bff1d13010171ff1e13010166ff1f13010142ff2013010125ff211302012fff2313010145ff2413010137ff2513010132ff2613010167ff271301016dff2813010160ff2913010134ff2a13010137ff2b13020160ff2d13010140ff2e1301011e55011401011a99021401013fff031402015aff0514010168ff0614010163ff0714010170ff081401016dff0914010162ff0a1401016aff0b1401015dff0c14010167ff0d1401016eff0e14010168ff0f1401011dff1014010248ff1114010165ff1414010111ff1514010109ff161401010cff1714010119ff181401011bff1914010126ff1a1401014dff1b14010167ff1c14010175ff1d14010176ff1e1401016eff1f1401014aff2014020117ff2214010148ff231401011cff241401010aff2514010113ff2614010131ff271401012fff281401012eff291401010eff2a14010134ff2b1401016bff2c14010171ff2d14010146ff2e1401014966011501011faa0215010118ff031501011eff041501013dff0515010142ff0615010154ff0715010149ff0815010140ff0915010225ff0a15010158ff0b15010170ff0c15010155ff0d15010166ff0e15010162ff0f1501011cff111501014aff121501010eff1315010103ff141501025dff1515010158ff161501012dff1715010110ff1815010109ff1915020104ff1b1501010eff1c15010149ff1d15010152ff1e15010127ff1f15010118ff201501012fff2115010155ff2215010113ff2315010129ff2415010122ff2515010130ff2615010156ff2715020130ff2915010146ff2a15010149ff2b15010167ff2c15010157ff2d15010160ff2e1501015a77011601012599021601013eff031601013dff041601012fff0516020119ff0716010225ff081601022fff0a16010155ff0b16010176ff0c16010164ff0d16010155ff0e16010163ff0f1601011dff1016020144ff1216010119ff1316010109ff1516010166ff161601014aff1716010165ff181601016bff1916010138ff1a16010109ff1b16010101ff1c16010106ff1d16010117ff1e1601013dff1f16010148ff201601016eff211601013aff221601012cff2316010158ff2416020125ff2616010157ff271601016aff2816010163ff291601012bff2a1601011cff2b16010153ff2c16010161ff2d1601014dff2e1601015299011701011f990217010142ff0317010158ff0417010167ff0517010148ff0617010117ff091701021eff0a17010159ff0b17010177ff0c17010149ff0d17010153ff0e1701015fff0f1701011eff1017010227ff111701013fff121701011cff131701010cff1417010156ff1517010161ff1617010159ff171701013fff1817010144ff1917010152ff1a1701012dff1b17010105ff1c17010203ff1d17010108ff1e17010131ff1f17010175ff201701026dff2117010160ff2217010163ff2317010171ff2417010153ff2517010149ff2617010162ff271701014cff2817010140ff2917010122ff2a17010120ff2b17010130ff2c1702015aff2e1701014a990118010141660218010125ff0318010134ff041801016dff0518010169ff061802011eff0818010125ff0a18010164ff0b18010174ff0c18010222ff0d18010149ff0e1801015aff0f1801011fff111801011bff121801011dff1318010111ff1418010136ff151801012dff161801017cff1718010159ff181801013fff1918010144ff1a18010148ff1b18010113ff1d18010101ff1e18010104ff1f1801012bff2118010176ff2218020177ff2418010176ff251801017cff2618010177ff2718010146ff281802012fff2a1802012bff2c18010158ff2d1801011dff2e1801013f88001901014411011901010abb021901011aff0319010152ff041901026cff0519010175ff0619010152ff0719010117ff0819010152ff0919010132ff0a19010169ff0b19010166ff0d19010117ff0e19010125ff0f1902011bff1119010115ff1219010107ff131901010eff1419010135ff1519010129ff1619010171ff1719010277ff1819010169ff1919010127ff1a1901013fff1b19010148ff1c1901011dff1d19010108ff1e19010100ff1f19010104ff2019010120ff211901016cff2219010174ff2319010168ff2419010166ff2519010169ff2619010171ff2719010172ff2819010164ff2919010159ff2a19010156ff2b19010135ff2c1901014eff2d1901010aff2e19010106ee2f1901011a33001a01010e88011a010106ff021a01013fff031a010153ff051a01017bff061a01016eff071a010149ff081a010169ff091a010166ff0a1a010140ff0b1a01012bff0c1a010165ff0d1a010132ff0e1a01010aff0f1a010115ff101a010106ff111a010104ff121a010111ff131a01012aff141a01015eff151a010112ff161a01016fff181a010172ff191a010154ff1a1a030127ff1d1a010143ff1e1a010120ff1f1a020104ff211a010122ff221a010151ff231a010152ff241a010120ff251a010142ff261a010151ff271a01016eff281a01017fff291a010174ff2a1a01016dff2b1a010171ff2c1a010120ff2d1a010117ff2e1a01010eff2f1a01011e99001b01011955011b010107ee021b010117ff031b010152ff041b010158ff051b010134ff061b020146ff081b01012eff091b01011eff0a1b010123ff0b1b01015dff0c1b010162ff0d1b010114ff0e1b010106ff0f1b010107ff101b01010cff111b010123ff121b010129ff131b010114ff141b01012dff151b01010dff161b010139ff171b010114ff181b010112ff191b01015fff1a1b010125ff1b1b020115ff1d1b01011eff1e1b010133ff1f1b01012eff201b02010aff221b010119ff231b010131ff241b010138ff251b010113ff261b01011eff271b01012eff281b02014cff2a1b010135ff2b1b01015dff2c1b01012bff2d1b01010eff2e1b01012fee2f1b01013d44011c01012566021c010119ff031c010122ff041c010149ff051c010135ff061c010123ff071c010109ff081c01010fff091c01015fff0a1c01013cff0b1c010138ff0c1c01013aff0d1c010161ff0e1c010156ff0f1c010146ff101c010169ff111c010173ff121c01015eff131c01013bff141c01012aff151c01013aff161c01016fff171c010129ff181c01012aff191c01016fff1a1c01014dff1b1c010130ff1c1c010135ff1d1c01015dff1e1c010171ff1f1c010169ff201c01014eff211c01014cff221c01015cff231c010138ff241c01013aff251c010139ff261c01015fff271c010129ff281c010109ff291c010111ff2a1c01013aff2b1c01014cff2c1c010117ff2d1c01011fff2e1c01014366011d01012f88021d010142ff031d010148ff041d010166ff051d01016dff061d01012dff071d010200ff081d010110ff091d010172ff0a1d010100ff0b1d010109ff0c1d01015cff0d1d010114ff0e1d010129ff0f1d01017cff101d01012aff111d010114ff121d010129ff131d010138ff141d01017fff151d010138ff161d010129ff171d01015eff181d010129ff191d010111ff1a1d01012aff1b1d010172ff1c1d010138ff1d1d010114ff1e1d010111ff1f1d010112ff201d01015fff211d01015bff221d010112ff231d01013bff241d010111ff251d010100ff261d01015bff271d010112ff281d010100ff291d01013aff2a1d010170ff2b1d010167ff2c1d010145ff2d1d010140ff2e1d01012e99021e010142aa031e010122ff041e010131ff051e010174ff061e010139ff081e010112ff091e01010bff0a1e010105ff0b1e01016aff0c1e01017fff0d1e010112ff0e1e010100ff0f1e01013cff101e010100ff111e01012cff121e010109ff131e010105ff141e010177ff151e010203ff161e01010cff171e01010dff181e010103ff191e010114ff1a1e010101ff1b1e010111ff1c1e010114ff1d1e010100ff1e1e01012cff1f1e010105ff201e010109ff211e010139ff221e010100ff231e01023cff241e010172ff251e010103ff261e010205ff271e010101ff281e010111ff291e010173ff2a1e01017cff2b1e010135ff2c1e010123ff2d1e010133cc2e1e01014411021f01013499031f01014dff041f01012cff051f01015bff061f01013aff071f010109ff081f01010bff091f010103ff0a1f01013aff0b1f01017fff0c1f010277ff0d1f010172ff0e1f01010bff0f1f010105ff101f01010dff111f01017fff121f01012dff131f010103ff141f01013bff161f01013cff171f010105ff181f010112ff191f01017fff1a1f02010dff1c1f01012cff1d1f010105ff1e1f01015dff1f1f020111ff211f01015bff221f010103ff241f01027fff251f010138ff271f010109ff281f01015dff291f01017fff2a1f010156ff2b1f01012dff2c1f010137ff2d1f010132990220010153990320010129ff0420010138ff0520010178ff062001013bff072002012cff092001012dff0a20010114ff0b20010161ff0d2001027cff0e2001013bff0f20010114ff102001015bff112001017eff122001016fff1320010129ff1420010112ff152001012aff1620010171ff1720010111ff1820010134ff192001016eff1a20010114ff1b2001012aff1c2001013bff1d20010123ff1e2002011cff202001015dff212001015fff2220010114ff232001015cff252001012dff2620010129ff272001012cff282001014dff2920010177ff2a20010169ff2b2001014cff2c20010131ff2d20010153aa032101013366042101014cff0521010156ff062101013aff072101010dff082101013aff092101015bff0a21010109ff0b2101010fff0c21010174ff0e21010138ff0f2101010bff1021010160ff1121010176ff1221010173ff1321010123ff1421010108ff1521010132ff1621010175ff1721010120ff182101010eff192101011dff1a2101010aff1b21010131ff1c2101012cff1d2101010aff1e2101014dff1f21010108ff202101014cff212101016aff2221010109ff232102015eff2521010208ff2621010123ff2721010114ff282101011cff2921010169ff2a2101014bff2b21010148ff2c21010149770422010154cc0522010168ff062201012bff072201010cff0822010137ff0922010175ff0a22010114ff0b22010108ff0c22010120ff0d22010171ff0e22010129ff0f2201010aff102201014dff112202017bff1322010136ff1422010122ff1522010253ff162201016eff172201014aff182201021eff1922010120ff1a22010130ff1b2201016eff1c22010134ff1d22010120ff1e2201016bff1f22010113ff202201011cff2122010137ff2222010108ff232201012aff2422010111ff262201015dff2722010129ff2822010108ff2922010148ff2a22010127ff2b2201014bcc042301011f55052301014eff0623010113ff072301010aff0823010131ff0923010168ff0a2301013aff0b23020131ff0d2301016aff0e23010161ff0f23010157ff1023010160ff112301014cff1223010134ff132301014cff1423010133ff1623010165ff1723010117ff192301017aff1a23010158ff1b23010134ff1c23010146ff1d23010149ff1e23010153ff1f23010167ff2023010162ff2123020160ff2323010137ff2423010135ff252301012aff262301017fff272301013aff282301010aff292301011cff2a2301013dee2b2301013f440424010143330524020122ff072401014dff0824010161ff0924010135ff0a24010134ff0b2401014fff0c2401015aff0d24010162ff0e24010156ff0f2401014cff1024020134ff1224010131ff132401012bff142401010eff1524010108ff162401012eff172401011aff1824010125ff192401012eff1a24010108ff1b2401010eff1c24010130ff1d24010134ff1e24020146ff202401014cff2124010157ff2224010163ff2324020159ff252401014cff2624010137ff2724010160ff2824010162ff292401012eff2a24010122ff2b2401012f33042501013e55052501014a770625010145990725010151ff0825010155ff0925010154ff0a25010164ff0b25010159ff0c2501014bff0d25010171ff0e2501026dff0f25010176ff1025010177ff1125010174ff1225020177ff142501016bff1525010134ff1625010113ff1725020133ff192501012bff1a25010135ff1b25010168ff1c2501017bff1d2501017fff1e25010174ff1f2501016dff2025010167ff212501016dff2225010173ff2325020164ff2525010167ff2625010158ff2725010162ff2825010152ff292501014aaa2a25010143772b2501013d55072601011f99082601011fff0926010140ff0a26010120ff0b2601015dff0c2601016cff0d26010167ff0f26010175ff102601026dff112601014bff1226010254ff132601015aff1426010174ff152601016aff1626010137ff1726010111ff182601012dff1926010164ff1a26010158ff1b26010176ff1c2601016dff1d26010159ff1e2603014bff2126010155ff2226010140ff2326010174ff242601016fff252601012cff262601013aff2726010141ff282601011abb082701011a990927010115ff0a27010117ff0b2701010dff0c2701013cff0d27010163ff0e2702014fff1127010175ff132701014bff1427010173ff1527010177ff1627010169ff172701012aff182701013cff192701015aff1a27010143ff1b2701015aff1c27010164ff1d27010152ff1e27010148ff1f27010142ff2027010125ff212701011eff2227010136ff232701015fff242701010cff252701010fff2627010141ff272701013faa092801011a660a2801011fee0b28010125ff0c28010160ff0d2802015cff0f28010156ff1028010147ff1128010162ff1228010268ff1328010154ff1428010174ff152801016cff1628010167ff172801014eff1828010157ff1928010167ff1a28010169ff1b2801016eff1c28010168ff1d28010247ff1e2801013eff1f28010122ff2028010131ff212801015bff222802015fff2428010131ff2528010151ff2628010144770a29010150220b2901014abb0c2901014bff0d29010175ff0e2901015cff0f29010112ff102901012dff112901014dff132901015aff142901014eff1529010147ff1629010145ff1729010227ff182901023dff192901014bff1a2901014eff1b29010146ff1c29010140ff1e2901014cff1f2901013aff2029010114ff2129010139ff2229010175ff2329010153ff2429010152cc2529010151330c2a01013f660d2a01014bdd0e2a01012bff0f2a01010bff102a010111ff112a01012dff122a01013bff132a01015eff142a01014dff152a010146ff162a010142ff192a020140ff1b2a010136ff1c2a01015dff1d2a01015bff1e2a01013cff1f2a010138ff202a010111ff212a01010fff222a01014eee232a01014a770d2b01013f110e2b010142770f2b01012bdd102b010135ff112b01015dff122b01015cff132b01015fff142b010147ff152b020118ff172b020115ff192b020118ff1b2b010148ff1c2b01016aff1d2b01016fff1e2b010161ff1f2b01014dff202b010132dd212b01014088222b010144110f2c01016e11102c01015255112c01014fbb122c01014eee132c010162ff142c010154ff152c010145ff162c010128ff172c02011fff192c010128ff1a2c010141ff1b2c01014fff1c2c010164ff1d2c01014fee1e2c010152bb1f2c01015166202c01017a11122d01013f22132d01015266142d01015599152d010155bb162d010151cc172d02014aee192d010151cc1a2d010155bb1b2d010155991c2d010154771d2d01014422172e02014422]]}
 
 local function refreshAssetViews(kind)
 	local job=UI.assetJobs[kind]
@@ -274,6 +831,7 @@ local function refreshAssetViews(kind)
 			or (job.state=="loading" and tr("imageLoading") or (tr("imageMissing").."\n"..tr("imageHelp")))
 	end
 	if UI.syncLogoSlot then UI.syncLogoSlot() end
+	if kind=="portal" and layoutHub and UI.lastHubSize then layoutHub(UI.lastHubSize); if refreshEffects then refreshEffects() end end
 	if UI.refreshBoot then UI.refreshBoot() end
 end
 function UI.syncLogoSlot()
@@ -388,7 +946,7 @@ function UI.startAsset(kind)
 		local customAsset=type(getcustomasset)=="function" and getcustomasset or (type(getsynasset)=="function" and getsynasset or nil)
 		if option("LocalArtwork",true)==false then record("local_disabled"); return end
 		if not customAsset or type(writefile)~="function" then record("local_capability_missing"); return end
-		local url="https://raw.githubusercontent.com/VnTotalGui/kyvorix-hub/main/"..kind..".png"
+		local url="https://raw.githubusercontent.com/VnTotalGui/kyvorix-hub/main/"..(kind=="logo" and "logo-transparent" or kind)..".png"
 		local function valid(bytes)
 			return type(bytes)=="string" and #bytes>8 and #bytes<8*1024*1024 and bytes:sub(1,8)=="\137PNG\r\n\26\n"
 		end
@@ -404,7 +962,7 @@ function UI.startAsset(kind)
 		end
 		if S.dead or job.generation~=generation then return end
 		if not ok or not valid(bytes) then record("png_unavailable"); return end
-		local fileName="kyvorix-owned-"..kind.."-v71.png"
+		local fileName="kyvorix-owned-"..kind.."-v72.png"
 		local stored,uri=pcall(function() writefile(fileName,bytes); return customAsset(fileName) end)
 		if S.dead or job.generation~=generation then return end
 		if stored and type(uri)=="string" and #uri>0 then tryUri(uri,"localImage",2) else record("custom_asset",uri) end
@@ -438,10 +996,10 @@ UI.brand=label(UI.header,"KYVORIX",21,C.text,true,true); rect(UI.brand,68,11,180
 UI.tag=label(UI.header,"edition",8,C.muted); rect(UI.tag,69,39,225,15)
 UI.dragHandle=make("TextButton",UI.header,{Name="WindowDragHandle",Text="",BackgroundTransparency=1,Active=true,AutoButtonColor=false})
 UI.headerLine=frame(UI.header,Color3.new(1,1,1)); UI.headerLine.Position=UDim2.new(0,0,1,-1); UI.headerLine.Size=UDim2.new(1,0,0,1); gradient(UI.headerLine)
-UI.languageButton,UI.languageCaption=button(UI.header,"EN / VI",false,function() setLanguage(S.language=="en" and "vi" or "en") end,"LanguageSwitch",true)
-UI.minimize=button(UI.header,"—",false,function() setMode("MINI") end,"WindowMinimize",true)
-UI.compact=button(UI.header,"□",false,function() setMode("STATUS") end,"WindowStatus",true)
-UI.close=button(UI.header,"×",false,function() UI.gui:Destroy() end,"WindowClose",true)
+UI.languageButton,UI.languageCaption=button(UI.header,"EN / VI",false,function() UI.openLanguages() end,"LanguageSwitch",true)
+UI.minimize=windowControl(UI.header,"minimize",function() setMode("MINI") end,"WindowMinimize")
+UI.compact=windowControl(UI.header,"status",function() setMode("STATUS") end,"WindowStatus")
+UI.close=windowControl(UI.header,"close",function() UI.gui:Destroy() end,"WindowClose")
 UI.sidebar=frame(UI.hub,C.bg,.25); round(UI.sidebar,12)
 UI.navScroll=make("ScrollingFrame",UI.sidebar,{
 	Name="NavigationScroll",BackgroundTransparency=1,BorderSizePixel=0,
@@ -474,8 +1032,8 @@ for i,id in pageOrder do
 			nav.fill.BackgroundTransparency=selected and 0 or 1
 			nav.caption.TextColor3=selected and C.text or C.muted
 		end
-		local selected=UI.pages[id]; selected.Position=UDim2.fromOffset(8,0); animate(selected,{Position=UDim2.fromOffset(0,0)},.18)
-		animate(UI.marker,{Position=UDim2.fromOffset(3,6+(i-1)*43)},.22)
+		local selected=UI.pages[id]; selected.Position=UDim2.fromOffset(12,0); animate(selected,{Position=UDim2.fromOffset(0,0)},.28)
+		animate(UI.marker,{Position=UDim2.fromOffset(3,6+(i-1)*43)},.30)
 		refreshEffects()
 	end,"nav_"..id)
 	b.Position=UDim2.fromOffset(9,(i-1)*43); b.Size=UDim2.new(1,-18,0,37)
@@ -547,7 +1105,7 @@ local function toggle(key)
 	S[key]=not S[key]; refreshEffects(); refreshStatus()
 	if S.transitioning and (S.fast or S.reduced) then setMode(S.mode,true) end
 end
-setting(1,"language","languageDesc",function() return S.language=="en" and "English" or "Tiếng Việt" end,function() setLanguage(S.language=="en" and "vi" or "en") end,"SettingsLanguage")
+setting(1,"language","languageDesc",function() return LANGUAGES[S.language].native end,function() UI.openLanguages() end,"SettingsLanguage")
 setting(2,"reduced","reducedDesc",function() return tr(S.reduced and "on" or "off") end,function() toggle("reduced") end,"ToggleReduced")
 setting(3,"fast","fastDesc",function() return tr(S.fast and "on" or "off") end,function() toggle("fast") end,"ToggleFast")
 setting(4,"aura","auraDesc",function() return tr(S.aura and "on" or "off") end,function() toggle("aura") end,"ToggleAura")
@@ -582,7 +1140,7 @@ function UI.applyProfile(value)
 	assert(type(value.reduced)=="boolean" and type(value.aura)=="boolean","Invalid profile fields")
 	assert(value.fast==nil or type(value.fast)=="boolean","Invalid Fastmode")
 	assert(value.particles==nil or type(value.particles)=="boolean","Invalid particles")
-	assert(value.language==nil or value.language=="en" or value.language=="vi","Invalid language")
+	assert(value.language==nil or LANGUAGES[value.language]~=nil,"Invalid language")
 	assert(type(value.palette)=="number" and value.palette%1==0 and UI.palettes[value.palette],"Invalid palette")
 	S.reduced=value.reduced; S.aura=value.aura; S.fast=value.fast==true; S.particles=value.particles~=false; S.palette=value.palette
 	if value.language then setLanguage(value.language) end
@@ -626,9 +1184,9 @@ UI.statusScroll=make("ScrollingFrame",UI.status,{BackgroundTransparency=1,Border
 UI.statusList.Parent=UI.statusScroll; UI.statusList.Position=UDim2.fromOffset(0,0); UI.statusList.Size=UDim2.new(1,-5,0,130)
 UI.statusCount=label(UI.status,"",9,C.cyan,true,true)
 UI.statusRestore=button(UI.status,"open",true,function() setMode("HUB") end,"StatusRestore")
-UI.statusMini=button(UI.status,"—",false,function() setMode("MINI") end,"StatusMinimize",true)
-UI.statusClose=button(UI.status,"×",false,function() UI.gui:Destroy() end,"StatusClose",true)
-UI.statusLang=button(UI.status,"EN / VI",false,function() setLanguage(S.language=="en" and "vi" or "en") end,"StatusLanguage",true)
+UI.statusMini=windowControl(UI.status,"minimize",function() setMode("MINI") end,"StatusMinimize")
+UI.statusClose=windowControl(UI.status,"close",function() UI.gui:Destroy() end,"StatusClose")
+UI.statusLang=button(UI.status,"EN / VI",false,function() UI.openLanguages() end,"StatusLanguage",true)
 UI.miniRestore=button(UI.mini,"",false,function() setMode("HUB") end,"MiniRestore",true)
 UI.miniRestore.Size=UDim2.fromScale(1,1)
 UI.miniLogo=imagePanel(UI.miniRestore,"logo"); rect(UI.miniLogo,4,4,48,48)
@@ -642,7 +1200,7 @@ UI.logoSlots.BOOT=UI.bootLogo
 UI.bootTitle=label(UI.bootSurface,"bootTitle",22,C.text,true)
 UI.bootSubtitle=label(UI.bootSurface,"bootSubtitle",11,C.muted)
 UI.bootClose=button(UI.bootSurface,"×",false,function() UI.gui:Destroy() end,"BootClose",true)
-UI.bootLanguage=button(UI.bootSurface,"EN / VI",false,function() setLanguage(S.language=="en" and "vi" or "en") end,"BootLanguage",true)
+UI.bootLanguage=button(UI.bootSurface,"EN / VI",false,function() UI.openLanguages() end,"BootLanguage",true)
 UI.bootProgressTrack=frame(UI.bootSurface,C.card); round(UI.bootProgressTrack,3)
 UI.bootProgress=frame(UI.bootProgressTrack,Color3.new(1,1,1)); UI.bootProgress.Size=UDim2.fromScale(0,1); round(UI.bootProgress,3); gradient(UI.bootProgress)
 UI.bootSummary=label(UI.bootSurface,"bootChecking",11,C.cyan,true)
@@ -676,8 +1234,8 @@ function UI.layoutBoot(size)
 	rect(UI.bootTitle,96,19,math.max(70,w-146),28)
 	rect(UI.bootSubtitle,96,49,math.max(70,w-114),40)
 	rect(UI.bootClose,w-42,12,28,26)
-	rect(UI.bootLanguage,w-91,92,73,24)
-	rect(UI.bootProgressTrack,18,105,w-127,3)
+	rect(UI.bootLanguage,w-174,92,156,28)
+	rect(UI.bootProgressTrack,18,105,math.max(18,w-210),3)
 	rect(UI.bootSummary,18,124,w-36,37)
 	rect(UI.bootChecksScroll,18,170,w-36,math.max(44,h-282))
 	rect(UI.bootLoad,18,h-94,w-36,35)
@@ -725,7 +1283,7 @@ function UI.refreshBoot()
 	UI.bootLoad.Active=UI.bootState.ready; UI.bootLoad.Selectable=UI.bootState.ready
 	UI.bootLoadCaption.Text=tr(UI.bootState.ready and "bootLoad" or "bootChecking")
 	UI.bootSummary.Text=tr(UI.bootState.ready and (warnings and "bootReadyWarn" or "bootReady") or "bootChecking")
-	animate(UI.bootProgress,{Size=UDim2.fromScale(done/#UI.bootCheckOrder,1)},.15)
+	animate(UI.bootProgress,{Size=UDim2.fromScale(done/#UI.bootCheckOrder,1)},.26)
 end
 UI.sparkles={}; UI.sparkBases={}
 for i=1,10 do
@@ -761,13 +1319,13 @@ refreshStatus=function()
 	table.insert(lines,tr("interface").."  /  "..table.concat(effects," · "))
 	UI.statusList.Text=table.concat(lines,"\n")
 	UI.statusList.Size=UDim2.new(1,-5,0,math.max(108,(#featureRows+5)*18))
-	UI.statusCount.Text=tostring(#featureRows).." "..tr("active").."  /  "..(S.language=="en" and "EN" or "VI")
+	UI.statusCount.Text=tostring(#featureRows).." "..tr("active").."  /  "..string.upper(S.language)
 	for _,update in UI.settingValues do update() end
 end
 refreshEffects=function()
 	for _,tween in UI.ambient do tween:Cancel() end; table.clear(UI.ambient)
 	UI.grid.Visible=not S.fast
-	UI.orbit.Visible=S.aura and not S.fast
+	UI.orbit.Visible=S.aura and not S.fast and UI.heroHasArtwork==true
 	for _,glow in UI.glows do glow.Visible=S.aura and not S.fast end
 	for _,spark in UI.sparkles do
 		spark.Position=UI.sparkBases[spark]
@@ -783,14 +1341,14 @@ refreshEffects=function()
 		end
 		if S.particles then
 			for i,spark in UI.sparkles do
-				local tween=TweenService:Create(spark,TweenInfo.new(2.4+i*.12,Enum.EasingStyle.Sine,Enum.EasingDirection.InOut,-1,true),{
+				local tween=TweenService:Create(spark,TweenInfo.new(3.2+i*.16,Enum.EasingStyle.Sine,Enum.EasingDirection.InOut,-1,true),{
 					Position=spark.Position+UDim2.fromOffset(0,-7-i%3),BackgroundTransparency=.75,
 				})
 				table.insert(UI.ambient,tween); tween:Play()
 			end
 		end
 		local g=UI.headGradient
-		local tween=TweenService:Create(g,TweenInfo.new(3.8,Enum.EasingStyle.Sine,Enum.EasingDirection.InOut,-1,true),{Offset=Vector2.new(.16,0)})
+		local tween=TweenService:Create(g,TweenInfo.new(5.2,Enum.EasingStyle.Sine,Enum.EasingDirection.InOut,-1,true),{Offset=Vector2.new(.16,0)})
 		table.insert(UI.ambient,tween); tween:Play()
 	end
 	for _,update in UI.settingValues do update() end
@@ -799,10 +1357,10 @@ refreshEffects=function()
 	end
 end
 setLanguage=function(language)
-	assert(language=="en" or language=="vi","Unsupported language")
+	assert(LANGUAGES[language],"Unsupported language")
 	S.language=language; playerGui:SetAttribute("KyvorixLanguage",language)
 	for _,binding in UI.bindings do binding.object.Text=tr(binding.key) end
-	UI.languageCaption.Text=language=="en" and "EN / VI" or "VI / EN"
+	UI.refreshLanguageChoice()
 	if UI.toast.Visible then UI.toast.Text=tr(UI.toast:GetAttribute("MessageKey") or "error") end
 	for _,update in UI.updaters do update() end
 	if UI.refreshBoot then UI.refreshBoot() end
@@ -810,6 +1368,68 @@ setLanguage=function(language)
 	refreshStatus(); UI.updateData()
 	return true
 end
+-- Flags are native UI shapes, so they do not depend on emoji fonts or image permissions.
+function UI.drawFlag(parent,language)
+	local flag=frame(parent,Color3.fromRGB(255,255,255)); flag.Name="CountryFlag"; flag.Size=UDim2.fromOffset(24,16); flag.ClipsDescendants=true; flag:SetAttribute("OriginalArtwork",true)
+	local function band(x,y,w,h,r,g,b)
+		local p=frame(flag,Color3.fromRGB(r,g,b)); rect(p,x,y,w,h); p:SetAttribute("OriginalArtwork",true); return p
+	end
+	if language=="vi" then
+		band(0,0,24,16,218,37,29); local star=label(flag,"★",12,Color3.fromRGB(255,222,0),true,true); rect(star,0,0,24,16); star.TextXAlignment=Enum.TextXAlignment.Center; star:SetAttribute("OriginalArtwork",true)
+	elseif language=="id" then band(0,0,24,8,225,40,48)
+	elseif language=="fr" then band(0,0,8,16,0,38,84); band(16,0,8,16,237,41,57)
+	elseif language=="es" then band(0,0,24,4,170,21,27); band(0,4,24,8,241,191,0); band(0,12,24,4,170,21,27)
+	elseif language=="pt" then band(0,0,10,16,0,102,0); band(10,0,14,16,255,0,0); local dot=band(8,5,6,6,255,220,40); round(dot,6)
+	else
+		band(0,0,24,16,1,33,105)
+		for _,angle in {33,-33} do local p=band(-2,6,28,3,255,255,255); p.Rotation=angle end
+		band(0,5,24,6,255,255,255); band(9,0,6,16,255,255,255); band(0,6,24,4,200,16,46); band(10,0,4,16,200,16,46)
+	end
+	return flag
+end
+UI.languageModal=frame(UI.root,Color3.fromRGB(2,4,14),.18)
+UI.languageModal.Name="LanguagePicker"; UI.languageModal.Size=UDim2.fromScale(1,1); UI.languageModal.ZIndex=20; UI.languageModal.Visible=false; UI.languageModal.Active=true
+UI.languagePanel=make("CanvasGroup",UI.languageModal,{Name="LanguagePanel",BackgroundColor3=C.panel,AnchorPoint=Vector2.new(.5,.5),Position=UDim2.fromScale(.5,.5),Size=UDim2.fromOffset(320,420),BorderSizePixel=0})
+round(UI.languagePanel,16); stroke(UI.languagePanel,C.cyan,.3)
+UI.languageHeading=label(UI.languagePanel,"",17,C.text,true,true); rect(UI.languageHeading,18,14,240,28)
+UI.languageClose=windowControl(UI.languagePanel,"close",function() UI.languageModal.Visible=false end,"LanguagePickerClose"); rect(UI.languageClose,276,12,30,30)
+local languageScroll=make("ScrollingFrame",UI.languagePanel,{Name="LanguageOptions",BackgroundTransparency=1,BorderSizePixel=0,Position=UDim2.fromOffset(14,56),Size=UDim2.new(1,-28,1,-70),CanvasSize=UDim2.fromOffset(0,#LANGUAGE_ORDER*54),ScrollBarThickness=3,ScrollBarImageColor3=C.cyan})
+UI.languageChoices={}
+for i,language in LANGUAGE_ORDER do
+	local info=LANGUAGES[language]
+	local choice,caption,face=button(languageScroll,info.country.."  ·  "..info.native,false,function() setLanguage(language); UI.languageModal.Visible=false end,"Language_"..language,true)
+	choice.Position=UDim2.fromOffset(0,(i-1)*54); choice.Size=UDim2.new(1,-6,0,46)
+	caption.TextSize=12; caption.TextXAlignment=Enum.TextXAlignment.Left; caption.Position=UDim2.fromOffset(48,0); caption.Size=UDim2.new(1,-58,1,0)
+	local flag=UI.drawFlag(face,language); flag.Position=UDim2.fromOffset(13,15)
+	UI.languageChoices[language]=face
+end
+function UI.openLanguages()
+	if S.dead then return end
+	UI.languageHeading.Text=LANGUAGES[S.language].title
+	local vp=UI.root.AbsoluteSize
+	UI.languagePanel.Size=UDim2.fromOffset(math.min(340,math.max(96,vp.X-24)),math.min(420,math.max(136,vp.Y-24)))
+	UI.languageClose.Position=UDim2.new(1,-44,0,12)
+	UI.languageModal.Visible=true; UI.languagePanel.GroupTransparency=.5
+	animate(UI.languagePanel,{GroupTransparency=0},.22)
+end
+UI.languageCaptions={}
+for _,target in {UI.languageButton,UI.bootLanguage,UI.statusLang} do
+	local face=target:FindFirstChildWhichIsA("Frame")
+	local caption=face:FindFirstChildWhichIsA("TextLabel")
+	caption.Position=UDim2.fromOffset(35,0); caption.Size=UDim2.new(1,-40,1,0); caption.TextSize=11
+	local flagHost=frame(face,nil,1); rect(flagHost,8,0,24,16); flagHost.Position=UDim2.new(0,8,.5,-8)
+	table.insert(UI.languageCaptions,{caption=caption,host=flagHost})
+end
+function UI.refreshLanguageChoice()
+	for _,item in UI.languageCaptions do
+		item.caption.Text=LANGUAGES[S.language].country
+		for _,child in item.host:GetChildren() do child:Destroy() end
+		UI.drawFlag(item.host,S.language)
+	end
+	UI.languageHeading.Text=LANGUAGES[S.language].title
+	for language,face in UI.languageChoices do face.BackgroundTransparency=language==S.language and .05 or .5 end
+end
+
 local function viewport()
 	local size=UI.root.AbsoluteSize
 	return Vector2.new(math.max(size.X,120),math.max(size.Y,160))
@@ -822,12 +1442,13 @@ function UI.geometry(mode)
 	local vp=viewport()
 	local gap=math.clamp(tonumber(option("RightInset",12)) or 12,8,20)
 	if mode=="STATUS" then
-		local size=Vector2.new(math.min(292,vp.X-24),math.min(242,vp.Y-24))
+		local size=Vector2.new(math.min(224,vp.X-24),math.min(174,vp.Y-24))
 		return size,Vector2.new(vp.X-gap-size.X/2,vp.Y/2)
 	elseif mode=="MINI" then
 		local size=Vector2.new(56,56)
 		local leftGap=math.clamp(tonumber(option("LeftInset",6)) or 6,4,8)
-		return size,Vector2.new(leftGap+size.X/2,leftGap+size.Y/2)
+		local bottomGap=math.clamp(tonumber(option("BottomInset",6)) or 6,4,8)
+		return size,Vector2.new(leftGap+size.X/2,vp.Y-bottomGap-size.Y/2)
 	elseif mode=="BOOT" then
 		local size=Vector2.new(math.min(480,vp.X-24),math.min(580,vp.Y-24))
 		return size,vp/2
@@ -842,65 +1463,80 @@ layoutHub=function(size)
 	local w,h=size.X,size.Y
 	local compact=w<700
 	local phone=w<460
-	local side=phone and 72 or (compact and 102 or 154)
+	local side=phone and 78 or (compact and 104 or 138)
 	local headerH=phone and 104 or 72
 	UI.header.Size=UDim2.new(1,0,0,headerH)
 	UI.tag.Visible=not phone
 	UI.brand.TextSize=phone and 18 or 21
 	if phone then
-		rect(UI.languageButton,16,65,74,28)
-	else rect(UI.languageButton,w-232,21,88,30) end
+		rect(UI.languageButton,16,65,156,28)
+	else rect(UI.languageButton,w-302,21,158,30) end
 	rect(UI.minimize,w-132,20,36,31); rect(UI.compact,w-92,20,36,31); rect(UI.close,w-52,20,36,31)
 	UI.dragHandle.Position=UDim2.fromOffset(62,0); UI.dragHandle.Size=UDim2.fromOffset(math.max(0,w-310),64)
-	local top=headerH+14
-	rect(UI.sidebar,12,top,side,h-top-38)
+	local top=headerH+12
+	local sidebarH=math.max(72,h-top-38)
+	rect(UI.sidebar,12,top,side,sidebarH)
 	UI.sideCaption.Visible=not compact
-	UI.sideFoot.Visible=h>540
-	UI.sideFoot.Position=UDim2.new(0,12,1,-38); UI.sideFoot.Size=UDim2.new(1,-24,0,29)
-	rect(UI.navScroll,0,compact and 6 or 30,side,math.max(36,h-top-38-(compact and 6 or 30)-(UI.sideFoot.Visible and 42 or 8)))
+	UI.sideFoot.Visible=h>580
+	UI.sideFoot.Position=UDim2.new(0,12,1,-36); UI.sideFoot.Size=UDim2.new(1,-24,0,27)
+	local navY=compact and 8 or 34
+	rect(UI.navScroll,0,navY,side,math.max(36,sidebarH-navY-(UI.sideFoot.Visible and 42 or 8)))
 	for i,nav in UI.navs do
 		nav.button.Position=UDim2.fromOffset(8,(i-1)*43); nav.button.Size=UDim2.new(1,-16,0,37)
-		nav.caption.Text=tr(compact and nav.short or nav.id); nav.caption.TextSize=phone and 9 or 11
+		nav.caption.Text=tr(compact and nav.short or nav.id); nav.caption.TextSize=phone and 10 or 12
 		if nav.id==S.page then UI.marker.Position=UDim2.fromOffset(3,6+(i-1)*43); UI.marker.Size=UDim2.fromOffset(3,27) end
 	end
 	local bodyX=side+24
-	rect(UI.body,bodyX,top,w-bodyX-14,h-top-68)
-	rect(UI.footer,bodyX,h-28,w-bodyX-18,18)
+	rect(UI.body,bodyX,top,math.max(48,w-bodyX-12),math.max(48,h-top-38))
+	rect(UI.footer,bodyX,h-27,w-bodyX-18,18)
 	rect(UI.toast,bodyX,h-58,w-bodyX-18,26)
-	local cw=w-bodyX-24
-	local two=cw>=620
-	local textW=two and math.floor(cw*.51) or cw-36
-	local artW=two and math.floor(cw*.43) or math.min(380,cw-36)
+	local cw=math.max(48,w-bodyX-22)
+	local pad=cw<340 and 16 or 20
+	local artwork=UI.assetJobs.portal and UI.assetJobs.portal.state=="loaded"
+	UI.heroHasArtwork=artwork==true
+	local two=artwork and cw>=620
+	local textW=two and math.floor(cw*.54) or math.max(32,cw-pad*2)
+	local artW=two and math.floor(cw*.37) or math.min(340,math.max(32,cw-pad*2))
 	local artH=artW*2/3
-	local titleSize=math.clamp(textW/10.2,19,34)
-	local heroH=two and math.max(330,artH+66) or 332+artH+54
+	local titleSize=math.clamp(textW/11,22,32)
+	local titleH=textW<240 and 58 or 44
+	local introY=56+titleH*2+10
+	local introH=textW<270 and 80 or 58
+	local buttonY=introY+introH+18
+	local stackedButtons=textW<330
+	local textBottom=buttonY+(stackedButtons and 86 or 42)
+	local heroH=textBottom+pad
+	if artwork then heroH=two and math.max(heroH,artH+80) or heroH+artH+66 end
 	UI.hero.Size=UDim2.new(1,0,0,heroH)
-	rect(UI.eyebrow,18,18,textW,28)
-	UI.eyebrow.TextSize=textW<240 and 7 or 9
+	rect(UI.eyebrow,pad,18,textW,24)
+	UI.eyebrow.TextSize=textW<240 and 10 or 11
 	UI.h1.TextSize=titleSize; UI.h2.TextSize=titleSize
-	rect(UI.h1,18,57,textW,45); rect(UI.h2,18,100,textW,45)
-	rect(UI.intro,18,158,textW,82)
-	if textW<270 then
-		rect(UI.discover,18,250,textW,33); rect(UI.personalize,18,291,textW,33)
+	rect(UI.h1,pad,56,textW,titleH); rect(UI.h2,pad,56+titleH,textW,titleH)
+	rect(UI.intro,pad,introY,textW,introH)
+	UI.intro.TextYAlignment=Enum.TextYAlignment.Top
+	if stackedButtons then
+		rect(UI.discover,pad,buttonY,textW,38); rect(UI.personalize,pad,buttonY+48,textW,38)
 	else
-		rect(UI.discover,18,250,(textW-10)*.54,38); rect(UI.personalize,28+(textW-10)*.54,250,(textW-10)*.46,38)
+		local primaryW=math.floor((textW-12)*.54)
+		rect(UI.discover,pad,buttonY,primaryW,42); rect(UI.personalize,pad+primaryW+12,buttonY,textW-primaryW-12,42)
 	end
-	local artX=two and cw-artW-14 or (cw-artW)/2
-	local artY=two and (heroH-artH)/2-8 or 344
+	local artX=two and cw-artW-pad or (cw-artW)/2
+	local artY=two and (heroH-artH)/2-10 or textBottom+30
+	UI.art.Visible=artwork==true; UI.artTag.Visible=artwork==true; UI.artCaption.Visible=artwork==true
 	rect(UI.art,artX,artY,artW,artH); rect(UI.orbit,artX,artY,artW,artH)
 	rect(UI.artTag,artX+8,artY+artH+6,artW-16,14); rect(UI.artCaption,artX+8,artY+artH+21,artW-16,20)
 	for i,ring in UI.rings do ring.Size=UDim2.fromOffset(artH*(.85+i*.11),artH*(.85+i*.11)) end
-	UI.orbit.Visible=S.aura and not S.fast
-	UI.heroRule.Visible=two; rect(UI.heroRule,18,heroH-24,cw-36,1)
-	for i,pill in UI.pills do pill.Visible=false; rect(pill,18+(i-1)*150,heroH-17,140,13) end
-	local statColumns=cw<480 and 2 or 4
-	local cellW=(cw-28-(statColumns-1)*6)/statColumns
-	UI.stats.Size=UDim2.new(1,0,0,statColumns==2 and 174 or 110)
+	UI.orbit.Visible=artwork==true and S.aura and not S.fast
+	UI.heroRule.Visible=false
+	for _,pill in UI.pills do pill.Visible=false end
+	local statColumns=cw<560 and 2 or 4
+	local cellW=(cw-32-(statColumns-1)*8)/statColumns
+	UI.stats.Size=UDim2.new(1,0,0,statColumns==2 and 178 or 112)
 	for i,cell in UI.statCells do
-		rect(cell,14+((i-1)%statColumns)*(cellW+6),35+math.floor((i-1)/statColumns)*65,cellW,58)
-		UI.statValues[i].TextSize=cw<280 and 12 or 16
+		rect(cell,16+((i-1)%statColumns)*(cellW+8),36+math.floor((i-1)/statColumns)*66,cellW,58)
+		UI.statValues[i].TextSize=cw<280 and 13 or 17
 	end
-	local stacked=cw<410
+	local stacked=cw<460
 	for _,row in UI.settingRows do
 		row.card.Size=UDim2.new(1,0,0,stacked and 154 or 90)
 		row.title.Size=UDim2.new(1,stacked and -32 or -180,0,25)
@@ -933,18 +1569,19 @@ layoutHub=function(size)
 end
 local function layoutCompact(size)
 	local w,h=size.X,size.Y
-	rect(UI.statusTitle,14,13,w-100,21); UI.statusTitle.TextSize=w<240 and 11 or 13
-	rect(UI.statusMini,w-76,10,28,26); rect(UI.statusClose,w-42,10,28,26)
-	rect(UI.statusSubtitle,14,38,w-28,25)
-	rect(UI.statusScroll,14,72,w-28,math.max(28,h-136))
-	rect(UI.statusCount,14,h-53,w-110,16)
-	rect(UI.statusRestore,14,h-32,w-98,24); rect(UI.statusLang,w-76,h-32,62,24)
+	rect(UI.statusTitle,10,9,w-72,18); UI.statusTitle.TextSize=11
+	rect(UI.statusMini,w-58,7,22,22); rect(UI.statusClose,w-32,7,22,22)
+	rect(UI.statusSubtitle,10,31,w-20,14); UI.statusSubtitle.TextSize=10
+	rect(UI.statusScroll,10,50,w-20,math.max(20,h-96)); UI.statusList.TextSize=11
+	rect(UI.statusCount,10,h-42,w-20,12); UI.statusCount.TextSize=10
+	rect(UI.statusRestore,10,h-25,72,19); UI.statusRestore:FindFirstChildWhichIsA("Frame"):FindFirstChildWhichIsA("TextLabel").TextSize=11
+	rect(UI.statusLang,88,h-25,w-98,19); UI.statusLang:FindFirstChildWhichIsA("Frame"):FindFirstChildWhichIsA("TextLabel").TextSize=11
 end
 setMode=function(mode,instant)
 	assert(mode=="HUB" or mode=="STATUS" or mode=="MINI" or mode=="BOOT","Unsupported window mode")
 	if S.dead then return false end
 	S.epoch+=1; local epoch=S.epoch
-	S.mode=mode; S.transitioning=true; UI.drag=nil; UI.resize=nil
+	S.mode=mode; S.transitioning=true; UI.drag=nil; UI.resize=nil; if UI.languageModal then UI.languageModal.Visible=false end
 	stop(UI.window,false)
 	for _,surface in {UI.hub,UI.status,UI.mini,UI.bootSurface} do stop(surface,false) end
 	refreshEffects()
@@ -962,15 +1599,15 @@ setMode=function(mode,instant)
 		S.transitioning=false; refreshEffects(); refreshStatus()
 	end
 	if instant or S.fast or S.reduced then finish(); return true end
-	for _,surface in {UI.hub,UI.status,UI.mini,UI.bootSurface} do if surface.Visible then animate(surface,{GroupTransparency=1},.10) end end
-	animate(UI.window,{Size=UDim2.fromOffset(size.X,size.Y),Position=UDim2.fromOffset(center.X,center.Y)},.48)
-	later(.16,function()
+	for _,surface in {UI.hub,UI.status,UI.mini,UI.bootSurface} do if surface.Visible then animate(surface,{GroupTransparency=1},.16) end end
+	animate(UI.window,{Size=UDim2.fromOffset(size.X,size.Y),Position=UDim2.fromOffset(center.X,center.Y)},.62,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut)
+	later(.20,function()
 		if S.epoch~=epoch then return end
 		for _,surface in {UI.hub,UI.status,UI.mini,UI.bootSurface} do surface.Visible=surface==target end
 		UI.syncLogoSlot()
-		target.GroupTransparency=1; animate(target,{GroupTransparency=0},.26)
+		target.GroupTransparency=1; animate(target,{GroupTransparency=0},.34)
 	end)
-	later(.50,finish)
+	later(.64,finish)
 	return true
 end
 UI.grip=make("TextButton",UI.hub,{Name="WindowResizeGrip",Text="↘",TextColor3=C.muted,TextSize=19,BackgroundTransparency=1,Position=UDim2.new(1,-28,1,-28),Size=UDim2.fromOffset(25,25)})
@@ -1031,7 +1668,7 @@ function UI.updateData()
 		return entry and tr(entry.state) or tr("unavailable")
 	end
 	UI.diagnosticsText.Text="KYVORIX 7 / "..(RunService:IsStudio() and "Studio" or "Client")
-		.."\n"..tr("language")..": "..(S.language=="en" and "English" or "Tiếng Việt")
+		.."\n"..tr("language")..": "..LANGUAGES[S.language].native
 		.."\n"..tr("logo")..": "..artState("logo").."\n"..tr("portal")..": "..artState("portal")
 		.."\n"..tr("features")..": "..tostring(UI.featureCount())
 end
@@ -1041,7 +1678,7 @@ end
 function UI.diagnostics()
 	local assets={}
 	for kind,list in pairs(UI.assets) do assets[kind]=list[1] and {state=list[1].state,source=list[1].source} or {} end
-	return {build="KYVORIX Client UI 7.1",language=S.language,mode=S.mode,page=S.page,transitioning=S.transitioning,boot=UI.bootState,
+	return {build="KYVORIX Client UI 7.2",language=S.language,mode=S.mode,page=S.page,transitioning=S.transitioning,boot=UI.bootState,
 		fast=S.fast,reduced=S.reduced,aura=S.aura,particles=S.particles,features=UI.featureCount(),assets=assets,
 		window={width=UI.window.Size.X.Offset,height=UI.window.Size.Y.Offset,x=UI.window.Position.X.Offset,y=UI.window.Position.Y.Offset},
 		artworkErrors={logo=UI.assetJobs.logo.errors,portal=UI.assetJobs.portal.errors},nativeLogoNodes=UI.nativeLogoNodes or 0,
