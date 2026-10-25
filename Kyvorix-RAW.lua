@@ -1464,11 +1464,12 @@ layoutHub=function(size)
 	local compact=w<700
 	local phone=w<460
 	local side=phone and 78 or (compact and 104 or 138)
-	local headerH=phone and 104 or 72
+	local narrowHeader=w<620
+	local headerH=narrowHeader and 104 or 72
 	UI.header.Size=UDim2.new(1,0,0,headerH)
-	UI.tag.Visible=not phone
+	UI.tag.Visible=not narrowHeader; UI.brand.Visible=w>=360
 	UI.brand.TextSize=phone and 18 or 21
-	if phone then
+	if narrowHeader then
 		rect(UI.languageButton,16,65,156,28)
 	else rect(UI.languageButton,w-302,21,158,30) end
 	rect(UI.minimize,w-132,20,36,31); rect(UI.compact,w-92,20,36,31); rect(UI.close,w-52,20,36,31)
