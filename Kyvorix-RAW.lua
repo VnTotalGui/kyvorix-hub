@@ -1,4 +1,4 @@
--- KYVORIX / CYBER CHROMA 7.2
+-- KYVORIX / CYBER CHROMA 7.3
 -- Standalone client UI; no gameplay automation, hooks or protection bypass.
 -- Optional KYVORIX_UI_CONFIG: Language, RightInset, LeftInset, BottomInset, KyvorixLogoAsset,
 -- KyvorixPortalAsset, KyvorixAssetsAuthorized, LocalArtwork.
@@ -110,7 +110,7 @@ local L={
 	bootReadyWarn={"Ready. Some optional data is unavailable.","Sẵn sàng. Một số dữ liệu tùy chọn chưa có."},
 	bootEnvironment={"Client & interface","Client & giao diện"},bootCharacter={"Character","Nhân vật"},
 	bootLevel={"Character level","Cấp độ nhân vật"},bootHealth={"Health","Sức khỏe"},
-	bootWallet={"Beli & fragments","Beli & fragments"},bootArtwork={"Original artwork","Ảnh gốc"},bootKey={"Access key","Key truy cập"},
+	bootWallet={"Beli & fragments","Beli & fragments"},bootArtwork={"Brand logo","Logo thương hiệu"},bootKey={"Access key","Key truy cập"},
 	checking={"CHECKING","ĐANG KIỂM TRA"},passed={"READY","SẴN SÀNG"},warning={"OPTIONAL","TÙY CHỌN"},
 	skipped={"SKIPPED","BỎ QUA"},bootKeySkip={"Not enabled by the owner","Chủ sở hữu chưa bật"},
 	bootDataMissing={"Not exposed by this game","Trò chơi chưa cung cấp dữ liệu"},
@@ -230,7 +230,7 @@ local EXTRA_TRANSLATIONS={
 		bootLevel="Level karakter",
 		bootHealth="Kesehatan",
 		bootWallet="Beli & fragments",
-		bootArtwork="Gambar asli",
+		bootArtwork="Logo merek",
 		bootKey="Key akses",
 		checking="MEMERIKSA",
 		passed="SIAP",
@@ -361,7 +361,7 @@ local EXTRA_TRANSLATIONS={
 		bootLevel="Nivel del personaje",
 		bootHealth="Salud",
 		bootWallet="Beli y fragmentos",
-		bootArtwork="Imágenes originales",
+		bootArtwork="Logo de marca",
 		bootKey="Clave de acceso",
 		checking="COMPROBANDO",
 		passed="LISTO",
@@ -492,7 +492,7 @@ local EXTRA_TRANSLATIONS={
 		bootLevel="Nível do personagem",
 		bootHealth="Vida",
 		bootWallet="Beli e fragmentos",
-		bootArtwork="Imagens originais",
+		bootArtwork="Logótipo da marca",
 		bootKey="Chave de acesso",
 		checking="VERIFICANDO",
 		passed="PRONTO",
@@ -623,7 +623,7 @@ local EXTRA_TRANSLATIONS={
 		bootLevel="Niveau du personnage",
 		bootHealth="Santé",
 		bootWallet="Beli et fragments",
-		bootArtwork="Images originales",
+		bootArtwork="Logo de marque",
 		bootKey="Clé d’accès",
 		checking="VÉRIFICATION",
 		passed="PRÊT",
@@ -715,8 +715,9 @@ local function gradient(object,colors,rotation)
 end
 local function label(parent,key,size,color,bold,literal)
 	local l=make("TextLabel",parent,{
-		Text=literal and key or tr(key),TextColor3=color or C.text,TextSize=math.max(11,size or 13),
-		Font=bold and Enum.Font.GothamBold or Enum.Font.GothamMedium,TextWrapped=true,
+		Text=literal and key or tr(key),TextColor3=color or C.text,TextSize=math.max(12,size or 14),
+		Font=bold and Enum.Font.SourceSansSemibold or Enum.Font.SourceSans,TextWrapped=true,
+		TextScaled=false,TextStrokeTransparency=1,LineHeight=1.05,
 		TextXAlignment=Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Center,
 		BackgroundTransparency=1,BorderSizePixel=0,
 	})
@@ -977,7 +978,9 @@ function UI.startAsset(kind)
 	refreshAssetViews(kind)
 end
 local function imagePanel(parent,kind)
-	local holder=frame(parent,Color3.fromRGB(5,10,27),.1); holder.ClipsDescendants=true; round(holder,12)
+	local holder=frame(parent,Color3.fromRGB(5,10,27),kind=="logo" and 1 or .1)
+	holder.Name="ArtworkHolder_"..kind; holder.ClipsDescendants=kind~="logo"
+	if kind~="logo" then round(holder,12) end
 	local image=make("ImageLabel",holder,{Name="Original_"..kind,Image="",BackgroundTransparency=1,Size=UDim2.fromScale(1,1),ScaleType=Enum.ScaleType.Fit,Visible=false})
 	local fallback=label(holder,kind=="logo" and "logoLoading" or "imageLoading",kind=="logo" and 7 or 11,C.muted)
 	fallback.Position=UDim2.fromOffset(4,4); fallback.Size=UDim2.new(1,-8,1,-8); fallback.TextXAlignment=Enum.TextXAlignment.Center
@@ -1192,18 +1195,18 @@ UI.miniRestore.Size=UDim2.fromScale(1,1)
 UI.miniLogo=imagePanel(UI.miniRestore,"logo"); rect(UI.miniLogo,4,4,48,48)
 UI.logoSlots.MINI=UI.miniLogo
 UI.bootSurface=make("CanvasGroup",UI.window,{
-	Name="BootSurface",BackgroundTransparency=1,Size=UDim2.fromScale(1,1),Visible=false,GroupTransparency=1,ZIndex=3,
+	Name="BootSurface",BackgroundColor3=C.bg,BackgroundTransparency=.06,Size=UDim2.fromScale(1,1),Visible=false,GroupTransparency=1,ZIndex=3,
 })
 UI.bootState={ready=false,checks={},keyState="skipped",started=os.clock(),warnings=false}
 UI.bootLogo=imagePanel(UI.bootSurface,"logo"); rect(UI.bootLogo,18,18,64,64)
 UI.logoSlots.BOOT=UI.bootLogo
-UI.bootTitle=label(UI.bootSurface,"bootTitle",22,C.text,true)
-UI.bootSubtitle=label(UI.bootSurface,"bootSubtitle",11,C.muted)
+UI.bootTitle=label(UI.bootSurface,"bootTitle",24,C.text,true)
+UI.bootSubtitle=label(UI.bootSurface,"bootSubtitle",14,C.muted)
 UI.bootClose=button(UI.bootSurface,"×",false,function() UI.gui:Destroy() end,"BootClose",true)
 UI.bootLanguage=button(UI.bootSurface,"EN / VI",false,function() UI.openLanguages() end,"BootLanguage",true)
 UI.bootProgressTrack=frame(UI.bootSurface,C.card); round(UI.bootProgressTrack,3)
 UI.bootProgress=frame(UI.bootProgressTrack,Color3.new(1,1,1)); UI.bootProgress.Size=UDim2.fromScale(0,1); round(UI.bootProgress,3); gradient(UI.bootProgress)
-UI.bootSummary=label(UI.bootSurface,"bootChecking",11,C.cyan,true)
+UI.bootSummary=label(UI.bootSurface,"bootChecking",13,C.cyan,true)
 UI.bootChecksScroll=make("ScrollingFrame",UI.bootSurface,{
 	Name="StartupChecks",BackgroundTransparency=1,BorderSizePixel=0,CanvasSize=UDim2.fromOffset(0,294),
 	ScrollBarThickness=2,ScrollBarImageColor3=C.cyan,
@@ -1266,10 +1269,11 @@ function UI.refreshBoot()
 	check("wallet",(beli and fragments) and "passed" or (waiting and "checking" or "warning"),(beli or "—").." / "..(fragments or "—"))
 	local logo,portal=UI.assetJobs.logo,UI.assetJobs.portal
 	local artPending=(logo and logo.state=="loading") or (portal and portal.state=="loading")
-	local artComplete=logo and portal and logo.state=="loaded" and portal.state=="loaded"
-	local artDetail=artComplete and tr("loaded") or (artPending and tr("imageLoading") or tr("bootAssetWarn"))
+	local logoReady=logo and logo.state=="loaded"
+		UI.bootState.artwork={logoReady=logoReady==true,source=logo and logo.source or "",fullImageLoaded=logoReady and logo.source~="rasterImage" or false,portalLoaded=portal and portal.state=="loaded" or false}
+	local artDetail=logoReady and tr("loaded") or (artPending and tr("imageLoading") or tr("bootAssetWarn"))
 	if logo and logo.source=="rasterImage" and not artPending then artDetail=tr("bootNative") end
-	check("artwork",artPending and "checking" or (artComplete and "passed" or "warning"),artDetail)
+	check("artwork",artPending and "checking" or (logoReady and "passed" or "warning"),artDetail)
 	check("key","skipped",tr("bootKeySkip"))
 	local done,warnings=0,false
 	for _,id in UI.bootCheckOrder do
@@ -1572,9 +1576,9 @@ local function layoutCompact(size)
 	local w,h=size.X,size.Y
 	rect(UI.statusTitle,10,9,w-72,18); UI.statusTitle.TextSize=11
 	rect(UI.statusMini,w-58,7,22,22); rect(UI.statusClose,w-32,7,22,22)
-	rect(UI.statusSubtitle,10,31,w-20,14); UI.statusSubtitle.TextSize=10
-	rect(UI.statusScroll,10,50,w-20,math.max(20,h-96)); UI.statusList.TextSize=11
-	rect(UI.statusCount,10,h-42,w-20,12); UI.statusCount.TextSize=10
+	rect(UI.statusSubtitle,10,31,w-20,14); UI.statusSubtitle.TextSize=11
+	rect(UI.statusScroll,10,50,w-20,math.max(20,h-96)); UI.statusList.TextSize=12
+	rect(UI.statusCount,10,h-42,w-20,12); UI.statusCount.TextSize=11
 	rect(UI.statusRestore,10,h-25,72,19); UI.statusRestore:FindFirstChildWhichIsA("Frame"):FindFirstChildWhichIsA("TextLabel").TextSize=11
 	rect(UI.statusLang,88,h-25,w-98,19); UI.statusLang:FindFirstChildWhichIsA("Frame"):FindFirstChildWhichIsA("TextLabel").TextSize=11
 end
@@ -1679,7 +1683,7 @@ end
 function UI.diagnostics()
 	local assets={}
 	for kind,list in pairs(UI.assets) do assets[kind]=list[1] and {state=list[1].state,source=list[1].source} or {} end
-	return {build="KYVORIX Client UI 7.2",language=S.language,mode=S.mode,page=S.page,transitioning=S.transitioning,boot=UI.bootState,
+	return {build="KYVORIX Client UI 7.3",language=S.language,mode=S.mode,page=S.page,transitioning=S.transitioning,boot=UI.bootState,
 		fast=S.fast,reduced=S.reduced,aura=S.aura,particles=S.particles,features=UI.featureCount(),assets=assets,
 		window={width=UI.window.Size.X.Offset,height=UI.window.Size.Y.Offset,x=UI.window.Position.X.Offset,y=UI.window.Position.Y.Offset},
 		artworkErrors={logo=UI.assetJobs.logo.errors,portal=UI.assetJobs.portal.errors},nativeLogoNodes=UI.nativeLogoNodes or 0,
